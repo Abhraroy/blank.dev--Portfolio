@@ -1,11 +1,12 @@
 "use client";
 
 import { GradientTexture, Text, useTexture } from "@react-three/drei";
-import { useMemo } from "react";
+import { useMemo, Suspense } from "react";
 import * as THREE from "three";
 import { CENTER_NODE } from "./config/nodes.data";
 import { MATERIALS } from "./config/scene.config";
 import { getCenterGeometry } from "./utils/reuse";
+import { useAdminStore } from "@/app/admin/_components/store";
 
 type CenterNodeProps = {
   /** Visual radius of the center sphere (breakpoint `centerSize`). */
@@ -20,9 +21,9 @@ function CenterLogo({ url, size }: { url: string; size: number }) {
   texture.colorSpace = THREE.SRGBColorSpace;
 
   return (
-    <mesh position={[0, 0, size * 0.92]} scale={size * 0.7} frustumCulled>
+    <mesh position={[0, 0, size * 1.01]} scale={size * 1.2} frustumCulled>
       <planeGeometry args={[1, 1]} />
-      <meshBasicMaterial map={texture} transparent toneMapped={false} />
+      <meshBasicMaterial map={texture} transparent toneMapped={false} side={THREE.DoubleSide} />
     </mesh>
   );
 }
@@ -34,6 +35,9 @@ function CenterLogo({ url, size }: { url: string; size: number }) {
 export default function CenterNode({ size }: CenterNodeProps) {
   const geometry = useMemo(() => getCenterGeometry(), []);
   const { center } = MATERIALS;
+  const heroNodesCMS = useAdminStore((s) => s.heroNodesCMS);
+  const centerLabel = heroNodesCMS?.centerNodeLabel || "Placeholder";
+  const centerLogo = heroNodesCMS?.centerLogoUrl || null;
 
   return (
     <group>
@@ -60,8 +64,10 @@ export default function CenterNode({ size }: CenterNodeProps) {
           />
         </meshStandardMaterial>
       </mesh>
-      {CENTER_NODE.logoUrl ? (
-        <CenterLogo url={CENTER_NODE.logoUrl} size={size} />
+      {centerLogo ? (
+        <Suspense fallback={null}>
+          <CenterLogo url={centerLogo} size={size} />
+        </Suspense>
       ) : null}
       <Text
         position={[0, -size * 1.35, 0]}
@@ -74,7 +80,7 @@ export default function CenterNode({ size }: CenterNodeProps) {
         maxWidth={4}
         textAlign="center"
       >
-        {CENTER_NODE.label}
+        {centerLabel}
       </Text>
     </group>
   );

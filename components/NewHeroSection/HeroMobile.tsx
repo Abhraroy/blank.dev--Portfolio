@@ -10,22 +10,33 @@ import { useAdminStore } from "@/app/admin/_components/store";
  * Replaces the R3F network sphere below the tablet breakpoint.
  */
 export default function HeroMobile() {
+  const { details, heroNodesCMS } = useAdminStore();
+
+  const cmsSkillLabels = heroNodesCMS?.items
+    ?.filter((i) => i.visible)
+    .map((i) => i.label) || [];
+
+  const skillList = cmsSkillLabels.length > 0 ? cmsSkillLabels : ["Placeholder"];
+
   const { displayText, announcedSkill } = useSkillTypewriter({
-    skills: HERO_MOBILE.skills,
+    skills: skillList,
     ...HERO_MOBILE.typewriter,
   });
 
-  const [firstName, lastName] = HERO_MOBILE.name.split("-");
   const typeSlotWidth =
-    Math.max(...HERO_MOBILE.skills.map((skill) => skill.length)) + 1;
+    Math.max(...skillList.map((skill) => skill.length)) + 1;
 
-  const { details } = useAdminStore();
+  const fullName = details?.full_name || "Placeholder";
+  const nameParts = fullName.includes(" ") ? fullName.split(" ") : [fullName, ""];
+  const firstName = nameParts[0] || "Placeholder";
+  const lastName = nameParts.slice(1).join(" ") || "";
+
   const mobileSocials = [
-    { id: "github", handle: "github", href: details.github_url || "https://github.com" },
-    { id: "linkedin", handle: "linkedin", href: details.linkedin_url || "https://linkedin.com" },
-    { id: "x", handle: "x.com", href: details.x_url || "https://x.com" },
-    { id: "email", handle: "email", href: `mailto:${details.email || "hello@blankdev.dev"}` },
-  ].filter((s) => Boolean(s.href));
+    { id: "github", handle: "github", href: details?.github_url },
+    { id: "linkedin", handle: "linkedin", href: details?.linkedin_url },
+    { id: "x", handle: "x.com", href: details?.x_url },
+    { id: "email", handle: "email", href: details?.email ? `mailto:${details.email}` : undefined },
+  ].filter((s): s is { id: string; handle: string; href: string } => Boolean(s.href));
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-between px-2 pt-6 pb-16">
@@ -97,6 +108,20 @@ export default function HeroMobile() {
           <Link
             key={cta.href}
             href={cta.href}
+            onClick={(e) => {
+              if (cta.href.includes("#")) {
+                const hash = cta.href.split("#")[1];
+                if (window.location.pathname === "/" || cta.href.startsWith("#")) {
+                  e.preventDefault();
+                  const elem = document.getElementById(hash);
+                  if (elem) {
+                    elem.scrollIntoView({ behavior: "smooth" });
+                  } else {
+                    window.location.href = cta.href;
+                  }
+                }
+              }
+            }}
             className={
               cta.variant === "primary"
                 ? "cta-highlight-get-in-touch cursor-pointer inline-flex flex-1 items-center justify-center rounded-xl border border-white/15 bg-white/10 px-5 py-2.5 font-mono text-xs tracking-[0.18em] text-zinc-50 uppercase transition hover:border-white/30 hover:bg-white/15 sm:flex-none"

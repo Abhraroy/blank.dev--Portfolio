@@ -18,7 +18,7 @@ const fadeUp = {
   }),
 };
 
-/** Desktop grid column spans based on visual position (blockNumber) */
+/** Desktop grid column spans for horizontal grid blocks 1..6 */
 const BLOCK_POSITION_SPAN: Record<number, string> = {
   1: "md:col-span-6",
   2: "md:col-span-3",
@@ -28,28 +28,134 @@ const BLOCK_POSITION_SPAN: Record<number, string> = {
   6: "md:col-span-2",
 };
 
+/** Standard 7 fixed layout blocks definitions with fallback content */
+const DEFAULT_BLOCKS: PortfolioBlockData[] = [
+  {
+    id: "default-blk-1",
+    sectionId: "about-default",
+    blockNumber: 1,
+    type: "HERO",
+    label: "About me",
+    heading: "Building interactive products with clarity and craft.",
+    subheading: "Full-stack engineer",
+    description:
+      "I design and ship web experiences that feel alive — from 3D portfolio surfaces to production APIs. Focused on Next.js, TypeScript, and systems that stay readable as they grow.",
+    ctaText: "Get in touch",
+    ctaUrl: "/#contact",
+    ctaVisible: true,
+    visible: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "default-blk-2",
+    sectionId: "about-default",
+    blockNumber: 2,
+    type: "CARD",
+    label: "Focus",
+    heading: "Product engineering",
+    description: "Interfaces, APIs, and the space between.",
+    visible: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "default-blk-3",
+    sectionId: "about-default",
+    blockNumber: 3,
+    type: "CARD",
+    label: "Experience",
+    heading: "4+ yrs",
+    description: "Shipping for web & startups",
+    visible: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "default-blk-4",
+    sectionId: "about-default",
+    blockNumber: 4,
+    type: "CARD",
+    label: "Stack",
+    heading: "Next · TS · Node",
+    description: "Prisma · Three · Postgres",
+    visible: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "default-blk-5",
+    sectionId: "about-default",
+    blockNumber: 5,
+    type: "CARD",
+    label: "Based",
+    heading: "Remote",
+    description: "Open to collab worldwide",
+    visible: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "default-blk-6",
+    sectionId: "about-default",
+    blockNumber: 6,
+    type: "CARD",
+    label: "Status",
+    heading: "Available",
+    description: "Select freelance & full-time",
+    visible: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "default-blk-7",
+    sectionId: "about-default",
+    blockNumber: 7,
+    type: "PROFILE",
+    heading: "AR",
+    imageAlt: "Profile Visual",
+    visible: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
 export default function AboutMe() {
   const { sections, activeModeId } = useAdminStore();
 
-  // Find ABOUT section and filter/sort blocks by spatial position (blockNumber) and active persona
   const aboutSection = sections.find((s) => s.key === "ABOUT" && s.visible);
-  const blocks: PortfolioBlockData[] = aboutSection
-    ? [...aboutSection.blocks]
-        .filter(
-          (b) =>
-            b.visible &&
-            (!b.portfolioModeId || b.portfolioModeId === activeModeId)
-        )
-        .sort((a, b) => a.blockNumber - b.blockNumber)
-    : [];
+  const dbBlocks = aboutSection?.blocks || [];
 
+  // Build fixed 7 blocks: merge DB content for each blockNumber (1..7) over default layout definition
+  const finalBlocks = [1, 2, 3, 4, 5, 6, 7].map((num) => {
+    const defaultBlk = DEFAULT_BLOCKS.find((b) => b.blockNumber === num)!;
 
-  // Spatial blocks: Block 1..6 belong to left grid, Block 7 belongs to right panel
-  const heroBlock = blocks.find((b) => b.blockNumber === 1);
-  const middleGridBlocks = blocks.filter(
-    (b) => b.blockNumber >= 2 && b.blockNumber <= 6
-  );
-  const profileBlock = blocks.find((b) => b.blockNumber === 7);
+    // Match persona-specific block first, then global unassigned block
+    const modeMatch = dbBlocks.find(
+      (b) => b.blockNumber === num && b.portfolioModeId === activeModeId && b.visible
+    );
+    const globalMatch = dbBlocks.find(
+      (b) => b.blockNumber === num && (!b.portfolioModeId || b.portfolioModeId === "") && b.visible
+    );
+    const matched = modeMatch || globalMatch;
+
+    if (!matched) return defaultBlk;
+
+    return {
+      ...defaultBlk,
+      ...matched,
+      // Fixed blockNumber and structural layout type
+      blockNumber: num,
+      type: defaultBlk.type,
+    };
+  });
+
+  // Spatial blocks mapping:
+  // Horizontal grid blocks 1 to 6 (left column)
+  const heroBlock = finalBlocks[0]; // Block 1 (Top Hero)
+  const middleGridBlocks = finalBlocks.slice(1, 6); // Blocks 2..6
+  // Vertical block 7 (right column panel - numbered last)
+  const profileBlock = finalBlocks[6]; // Block 7 (Profile Panel)
 
   return (
     <section
@@ -63,7 +169,7 @@ export default function AboutMe() {
       />
 
       <div className="relative mx-auto grid w-full max-w-7xl items-stretch gap-4 sm:gap-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(220px,0.55fr)] lg:gap-6">
-        {/* Left Column — Top Hero (Block 1) + Row 2 & 3 Grid (Blocks 2..6) */}
+        {/* Left Column — Horizontal Blocks 1 to 6 (Numbered Left-to-Right, Top-to-Bottom) */}
         <div
           className="order-2 grid grid-cols-1 gap-3 sm:gap-3.5 md:grid-cols-6 lg:order-1"
           role="list"
@@ -83,10 +189,10 @@ export default function AboutMe() {
             </motion.div>
           )}
 
-          {/* Spatial Blocks 2 to 6 (Middle Bento Grid) */}
+          {/* Spatial Blocks 2 to 6 (Middle/Bottom Bento Grid) */}
           {middleGridBlocks.map((block, index) => (
             <motion.div
-              key={block.id}
+              key={block.id || `blk-${block.blockNumber}`}
               role="listitem"
               className={`${
                 BLOCK_POSITION_SPAN[block.blockNumber] ?? "md:col-span-2"
@@ -102,7 +208,7 @@ export default function AboutMe() {
           ))}
         </div>
 
-        {/* Right Column — Spatial Block 7 (Large Vertical Panel) */}
+        {/* Right Column — Vertical Panel Block 7 (Numbered Last) */}
         {profileBlock && (
           <motion.div
             className="order-1 min-h-72 lg:order-2 lg:min-h-0"
@@ -119,4 +225,5 @@ export default function AboutMe() {
     </section>
   );
 }
+
 

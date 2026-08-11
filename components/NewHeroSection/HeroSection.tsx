@@ -46,6 +46,13 @@ export default function HeroSection() {
   }, []);
 
   const scrollPastHero = () => {
+    // Fire-and-forget tracking
+    fetch("/api/track/website", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "scrolled_past_hero" }),
+    }).catch(() => {});
+
     const el = sectionRef.current;
     if (!el) {
       window.scrollBy({ top: window.innerHeight, behavior: "smooth" });

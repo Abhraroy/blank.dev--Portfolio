@@ -16,6 +16,7 @@ import {
   FaLinkedinIn,
   FaXTwitter,
 } from "react-icons/fa6";
+import { trackContactFormSubmit, trackContactInterested } from "@/lib/track";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 18 },
@@ -40,19 +41,20 @@ export default function BuildTogether() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
 
-  const contactEmail = details.email || BUILD_TOGETHER.email;
+  const contactEmail = details?.email || "Placeholder";
 
   const socialChannels = [
-    { id: "github", label: "GitHub", href: details.github_url || "https://github.com", Icon: FaGithub },
-    { id: "linkedin", label: "LinkedIn", href: details.linkedin_url || "https://linkedin.com", Icon: FaLinkedinIn },
-    { id: "x", label: "X (Twitter)", href: details.x_url || "https://x.com", Icon: FaXTwitter },
-    { id: "instagram", label: "Instagram", href: details.instagram_url || "https://instagram.com", Icon: FaInstagram },
-    { id: "discord", label: "Discord", href: details.discord_url || "https://discord.com", Icon: FaDiscord },
-    { id: "email", label: "Email", href: `mailto:${contactEmail}`, Icon: FaEnvelope },
-  ].filter((s) => Boolean(s.href));
+    { id: "github", label: "GitHub", href: details?.github_url, Icon: FaGithub },
+    { id: "linkedin", label: "LinkedIn", href: details?.linkedin_url, Icon: FaLinkedinIn },
+    { id: "x", label: "X (Twitter)", href: details?.x_url, Icon: FaXTwitter },
+    { id: "instagram", label: "Instagram", href: details?.instagram_url, Icon: FaInstagram },
+    { id: "discord", label: "Discord", href: details?.discord_url, Icon: FaDiscord },
+    { id: "email", label: "Email", href: contactEmail !== "Placeholder" ? `mailto:${contactEmail}` : undefined, Icon: FaEnvelope },
+  ].filter((s): s is { id: string; label: string; href: string; Icon: typeof FaGithub } => Boolean(s.href));
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    trackContactFormSubmit();
     const subject = encodeURIComponent(
       name ? `New project inquiry from ${name}` : "New project inquiry",
     );
@@ -179,6 +181,7 @@ export default function BuildTogether() {
             <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
               <a
                 href={`mailto:${contactEmail}?subject=${encodeURIComponent("Contact Request")}&body=${encodeURIComponent("Hi,\n\nI would like to get in touch regarding a potential project / collaboration opportunity.\n\nBest regards,")}`}
+                onClick={() => trackContactInterested()}
                 className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/5 px-4 py-2.5 font-mono text-xs tracking-[0.18em] text-zinc-200 uppercase transition hover:border-white/30 hover:bg-white/10 hover:text-white"
               >
                 <FiMail className="h-3.5 w-3.5" aria-hidden />
@@ -215,6 +218,7 @@ export default function BuildTogether() {
                   target={href.startsWith("mailto:") ? undefined : "_blank"}
                   rel="noreferrer noopener"
                   aria-label={label}
+                  onClick={() => trackContactInterested()}
                   className="group flex h-11 w-11 items-center justify-center rounded-xl border border-white/12 bg-white/5 text-zinc-400 backdrop-blur-sm transition hover:border-white/30 hover:bg-white/10 hover:text-zinc-50"
                 >
                   <Icon className="h-4.5 w-4.5 transition-transform duration-200 group-hover:scale-110" />

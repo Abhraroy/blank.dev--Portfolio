@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useAdminStore } from "../../_components/store";
 import {
   FiBriefcase,
@@ -8,7 +8,12 @@ import {
   FiArrowDown,
   FiSettings,
   FiInfo,
+  FiEdit3,
+  FiTrash2,
+  FiCheck,
+  FiX,
 } from "react-icons/fi";
+import { Experience } from "../../_components/types";
 
 export default function CMSExperiencePage() {
   const {
@@ -19,7 +24,23 @@ export default function CMSExperiencePage() {
     updateExperienceCMSItem,
     deleteExperienceCMSItem,
     reorderExperienceCMSItems,
+    updateExperience,
   } = useAdminStore();
+
+  const [editingExp, setEditingExp] = useState<Experience | null>(null);
+  const [expForm, setExpForm] = useState<{
+    role_title: string;
+    company_name: string;
+    company_url: string;
+    start_date: string;
+    end_date: string;
+  }>({
+    role_title: "",
+    company_name: "",
+    company_url: "",
+    start_date: "",
+    end_date: "",
+  });
 
   const cmsItems = [...(experienceCMS.items || [])].sort((a, b) => a.displayOrder - b.displayOrder);
 
@@ -62,6 +83,32 @@ export default function CMSExperiencePage() {
     }
   };
 
+  const openEditModal = (exp: Experience) => {
+    setEditingExp(exp);
+    setExpForm({
+      role_title: exp.role_title,
+      company_name: exp.company_name,
+      company_url: exp.location || "",
+      start_date: exp.start_date || "",
+      end_date: exp.end_date || "",
+    });
+  };
+
+  const handleSaveExperience = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingExp) return;
+
+    updateExperience(editingExp.id, {
+      role_title: expForm.role_title,
+      company_name: expForm.company_name,
+      location: expForm.company_url || undefined,
+      start_date: expForm.start_date,
+      end_date: expForm.end_date || undefined,
+    });
+
+    setEditingExp(null);
+  };
+
   return (
     <div className="space-y-6 pb-16">
       {/* Top Header */}
@@ -73,7 +120,7 @@ export default function CMSExperiencePage() {
           <FiBriefcase className="text-zinc-300 h-5 w-5" /> Experience Journey Composition
         </h1>
         <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-          Select which career experiences appear on the website, reorder milestones, configure default initial active milestone, and toggle field visibility.
+          Select which career experiences appear on the website, edit role details, reorder milestones, configure default initial active milestone, and toggle field visibility.
         </p>
       </div>
 
@@ -125,10 +172,105 @@ export default function CMSExperiencePage() {
         </div>
       </div>
 
+      {/* Edit Experience Modal */}
+      {editingExp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+          <div className="w-full max-w-xl rounded-2xl border border-white/15 bg-zinc-950 p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3 font-mono">
+              <h2 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+                <FiEdit3 className="text-indigo-400" /> Edit Role: {editingExp.role_title} @ {editingExp.company_name}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setEditingExp(null)}
+                className="p-1 text-zinc-400 hover:text-white"
+              >
+                <FiX />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveExperience} className="space-y-4 font-mono">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] uppercase text-zinc-400 mb-1">Role Title</label>
+                  <input
+                    type="text"
+                    required
+                    value={expForm.role_title}
+                    onChange={(e) => setExpForm({ ...expForm, role_title: e.target.value })}
+                    className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-white/30"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase text-zinc-400 mb-1">Company Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={expForm.company_name}
+                    onChange={(e) => setExpForm({ ...expForm, company_name: e.target.value })}
+                    className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-white/30"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] uppercase text-zinc-400 mb-1">Location</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Remote or San Francisco, CA"
+                  value={expForm.company_url}
+                  onChange={(e) => setExpForm({ ...expForm, company_url: e.target.value })}
+                  className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-white/30"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] uppercase text-zinc-400 mb-1">Start Date</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 2024-01-01"
+                    value={expForm.start_date}
+                    onChange={(e) => setExpForm({ ...expForm, start_date: e.target.value })}
+                    className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-white/30"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase text-zinc-400 mb-1">End Date (or Present)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Present or 2025-06-30"
+                    value={expForm.end_date}
+                    onChange={(e) => setExpForm({ ...expForm, end_date: e.target.value })}
+                    className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-white/30"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setEditingExp(null)}
+                  className="px-4 py-2 rounded-xl border border-white/10 text-xs text-zinc-400 hover:bg-white/5"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl border border-white/20 bg-white/15 text-xs text-white hover:bg-white/25 flex items-center gap-1.5 font-semibold"
+                >
+                  <FiCheck /> Save Experience Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Experience Picker & Ordering */}
       <div className="rounded-2xl border border-white/10 bg-zinc-950/40 backdrop-blur-xl p-6 space-y-4 shadow-[0_0_12px_rgba(255,255,255,0.06)]">
         <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-zinc-400 font-semibold flex items-center gap-2">
-          <FiSettings className="text-zinc-300" /> Select & Reorder Displayed Experiences
+          <FiSettings className="text-zinc-300" /> Select, Edit & Reorder Displayed Experiences
         </h2>
 
         <div className="space-y-3">
@@ -150,7 +292,7 @@ export default function CMSExperiencePage() {
                       type="checkbox"
                       checked={isIncluded}
                       onChange={() => handleToggleCMSExperience(exp.id)}
-                      className="h-4 w-4 rounded border-white/20 bg-zinc-950 text-white focus:ring-0"
+                      className="h-4 w-4 rounded border-white/20 bg-zinc-950 text-white focus:ring-0 cursor-pointer"
                     />
                     <div>
                       <span className="text-xs font-mono font-bold text-zinc-100">
@@ -162,27 +304,51 @@ export default function CMSExperiencePage() {
                     </div>
                   </div>
 
-                  {cmsItem && (
-                    <div className="flex items-center gap-2 font-mono">
-                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-white/10 text-zinc-300 border border-white/10">
-                        Position #{cmsItem.displayOrder}
-                      </span>
+                  <div className="flex items-center gap-2 font-mono">
+                    {cmsItem && (
+                      <>
+                        <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-white/10 text-zinc-300 border border-white/10">
+                          Position #{cmsItem.displayOrder}
+                        </span>
+                        <button
+                          disabled={itemIndex === 0}
+                          onClick={() => handleMoveCMSItem(itemIndex, "up")}
+                          className="p-1 text-zinc-400 hover:text-white disabled:opacity-30"
+                          title="Move Up"
+                        >
+                          <FiArrowUp />
+                        </button>
+                        <button
+                          disabled={itemIndex === cmsItems.length - 1}
+                          onClick={() => handleMoveCMSItem(itemIndex, "down")}
+                          className="p-1 text-zinc-400 hover:text-white disabled:opacity-30"
+                          title="Move Down"
+                        >
+                          <FiArrowDown />
+                        </button>
+                      </>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => openEditModal(exp)}
+                      className="p-1.5 rounded-xl border border-white/10 bg-white/5 text-zinc-300 hover:text-white"
+                      title="Edit Role Details"
+                    >
+                      <FiEdit3 className="h-3.5 w-3.5" />
+                    </button>
+
+                    {cmsItem && (
                       <button
-                        disabled={itemIndex === 0}
-                        onClick={() => handleMoveCMSItem(itemIndex, "up")}
-                        className="p-1 text-zinc-400 hover:text-white disabled:opacity-30"
+                        type="button"
+                        onClick={() => deleteExperienceCMSItem(cmsItem.id)}
+                        className="p-1.5 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20"
+                        title="Remove from Journey"
                       >
-                        <FiArrowUp />
+                        <FiTrash2 className="h-3.5 w-3.5" />
                       </button>
-                      <button
-                        disabled={itemIndex === cmsItems.length - 1}
-                        onClick={() => handleMoveCMSItem(itemIndex, "down")}
-                        className="p-1 text-zinc-400 hover:text-white disabled:opacity-30"
-                      >
-                        <FiArrowDown />
-                      </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
 
                 {cmsItem && (

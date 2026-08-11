@@ -18,7 +18,36 @@ export default function Experience() {
   // Derive dynamic milestones from ExperienceSectionCMS composition layer
   const milestones: ExperienceMilestoneType[] = useMemo(() => {
     if (!experienceCMS || !experienceCMS.items || experienceCMS.items.length === 0) {
-      return FALLBACK_MILESTONES;
+      if (experiences.length > 0) {
+        return experiences.map((exp) => {
+          const yearStr = exp.start_date ? new Date(exp.start_date).getFullYear().toString() : "Placeholder";
+          const modeContent = exp.modeContents?.[0];
+          return {
+            id: exp.id,
+            year: yearStr,
+            title: exp.role_title || "Placeholder",
+            summary: `${exp.company_name || "Placeholder"}${exp.location ? ` · ${exp.location}` : ""}`,
+            description: modeContent?.experience_description || exp.role_title || "Placeholder",
+            techStack: modeContent?.experience_highlights && modeContent.experience_highlights.length > 0
+              ? modeContent.experience_highlights
+              : ["Placeholder"],
+            achievements: modeContent?.experience_highlights || ["Placeholder"],
+            stats: [{ label: "Placeholder", value: "Placeholder" }],
+          };
+        });
+      }
+      return [
+        {
+          id: "ph-exp-1",
+          year: "Placeholder",
+          title: "Placeholder",
+          summary: "Placeholder",
+          description: "Placeholder",
+          techStack: ["Placeholder"],
+          achievements: ["Placeholder"],
+          stats: [{ label: "Placeholder", value: "Placeholder" }],
+        },
+      ];
     }
 
     const activeCMSItems = [...experienceCMS.items]
@@ -30,53 +59,48 @@ export default function Experience() {
       const metrics = experienceMetrics
         .filter((m) => m.experienceId === item.experienceId && m.visible)
         .sort((a, b) => a.order - b.order)
-        .map((m) => ({ label: m.label, value: m.value }));
+        .map((m) => ({ label: m.label || "Placeholder", value: m.value || "Placeholder" }));
 
       const achievements = experienceAchievements
         .filter((a) => a.experienceId === item.experienceId && a.visible)
         .sort((a, b) => a.order - b.order)
-        .map((a) => a.content);
+        .map((a) => a.content || "Placeholder");
 
       if (!exp) {
-        // Fallback placeholder if matching experience record was deleted
         return {
           id: item.id,
-          year: "2026",
-          title: "Production Engineering",
-          summary: "Shipping web products & systems",
-          description: "Full stack web platforms with modern developer tooling.",
-          techStack: ["Next.js", "TypeScript", "PostgreSQL"],
-          achievements: achievements.length > 0 ? achievements : ["Built scalable applications"],
-          stats: metrics.length > 0 ? metrics : [{ label: "Projects", value: "10+" }],
+          year: "Placeholder",
+          title: "Placeholder",
+          summary: "Placeholder",
+          description: "Placeholder",
+          techStack: ["Placeholder"],
+          achievements: achievements.length > 0 ? achievements : ["Placeholder"],
+          stats: metrics.length > 0 ? metrics : [{ label: "Placeholder", value: "Placeholder" }],
         };
       }
 
-      const yearStr = exp.start_date ? new Date(exp.start_date).getFullYear().toString() : "2026";
+      const yearStr = exp.start_date ? new Date(exp.start_date).getFullYear().toString() : "Placeholder";
       const modeContent = exp.modeContents?.[0];
 
       return {
         id: exp.id,
         year: yearStr,
-        title: exp.role_title,
-        summary: `${exp.company_name}${exp.location ? ` · ${exp.location}` : ""}`,
-        description: modeContent?.experience_description || `${exp.role_title} at ${exp.company_name}.`,
+        title: exp.role_title || "Placeholder",
+        summary: `${exp.company_name || "Placeholder"}${exp.location ? ` · ${exp.location}` : ""}`,
+        description: modeContent?.experience_description || exp.role_title || "Placeholder",
         techStack: modeContent?.experience_highlights && modeContent.experience_highlights.length > 0
           ? modeContent.experience_highlights
-          : ["Next.js", "TypeScript", "PostgreSQL"],
+          : ["Placeholder"],
         achievements: achievements.length > 0
           ? achievements
-          : modeContent?.experience_highlights || ["Architected core web platforms"],
+          : modeContent?.experience_highlights || ["Placeholder"],
         stats: metrics.length > 0
           ? metrics
-          : [
-              { label: "Pipelines", value: "8+" },
-              { label: "Models", value: "12" },
-              { label: "Latency cut", value: "40%" },
-            ],
+          : [{ label: "Placeholder", value: "Placeholder" }],
       };
     });
 
-    return derived.length > 0 ? derived : FALLBACK_MILESTONES;
+    return derived;
   }, [experiences, experienceMetrics, experienceAchievements, experienceCMS]);
 
   const milestoneIds = useMemo(() => milestones.map((m) => m.id), [milestones]);

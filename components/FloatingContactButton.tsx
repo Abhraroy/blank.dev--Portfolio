@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiMail, FiArrowUp } from "react-icons/fi";
+import { trackContactInterested } from "@/lib/track";
 
 export default function FloatingContactButton() {
   const pathname = usePathname();
@@ -39,6 +40,7 @@ export default function FloatingContactButton() {
   if (!mounted || isAdmin) return null;
 
   const scrollToContact = () => {
+    trackContactInterested();
     const contactElem = document.getElementById("contact");
     if (contactElem) {
       contactElem.scrollIntoView({ behavior: "smooth" });

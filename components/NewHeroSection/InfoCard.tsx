@@ -144,7 +144,21 @@ export default function InfoCard({ card, onClose }: InfoCardProps) {
               href={card.data.cta.href}
               className="inline-flex w-full items-center justify-center rounded-lg border border-white/15 bg-white/10 px-3 py-1.5 font-mono font-medium tracking-wide text-zinc-100 transition hover:bg-white/15"
               style={{ fontSize: ctaFontSize }}
-              onClick={onClose}
+              onClick={(e) => {
+                onClose();
+                if (card.data.cta.href.includes("#")) {
+                  const hash = card.data.cta.href.split("#")[1];
+                  if (window.location.pathname === "/" || card.data.cta.href.startsWith("#")) {
+                    e.preventDefault();
+                    const elem = document.getElementById(hash);
+                    if (elem) {
+                      elem.scrollIntoView({ behavior: "smooth" });
+                    } else {
+                      window.location.href = card.data.cta.href;
+                    }
+                  }
+                }
+              }}
             >
               {card.data.cta.label}
             </Link>

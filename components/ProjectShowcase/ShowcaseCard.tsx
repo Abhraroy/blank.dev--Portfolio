@@ -4,6 +4,7 @@ import {
   SHOWCASE_CARD_CLASS,
   type ShowcaseProject,
 } from "./projectShowcase.config";
+import { trackProjectClicked } from "@/lib/track";
 
 type ShowcaseCardProps = {
   project: ShowcaseProject;
@@ -18,7 +19,10 @@ export default function ShowcaseCard({ project, onOpen }: ShowcaseCardProps) {
     <article className={SHOWCASE_CARD_CLASS}>
       <button
         type="button"
-        onClick={() => onOpen(project)}
+        onClick={() => {
+          trackProjectClicked(project.id);
+          onOpen(project);
+        }}
         className="group block h-full w-full cursor-pointer text-left outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
         aria-label={`Open ${project.name}`}
       >

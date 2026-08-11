@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import GlowFrame from "./GlowFrame";
 import { PortfolioBlockData } from "@/app/admin/_components/types";
+import { trackContactInterested } from "@/lib/track";
 
 interface PortfolioBlockRendererProps {
   block: PortfolioBlockData;
@@ -84,14 +85,22 @@ export function PortfolioBlockRenderer({ block }: PortfolioBlockRendererProps) {
             )}
           </div>
 
-          {ctaVisible && ctaText && ctaUrl && (
-            <Link
-              href={ctaUrl}
-              className="cta-highlight-get-in-touch cursor-pointer inline-flex shrink-0 items-center justify-center self-start rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 font-mono text-xs tracking-[0.18em] text-zinc-100 uppercase transition hover:border-white/25 hover:bg-white/10 sm:self-end"
-            >
-              {ctaText}
-            </Link>
-          )}
+          <a
+            href="#contact"
+            onClick={(e) => {
+              e.preventDefault();
+              trackContactInterested();
+              const contactElem = document.getElementById("contact");
+              if (contactElem) {
+                contactElem.scrollIntoView({ behavior: "smooth" });
+              } else {
+                window.location.href = "/#contact";
+              }
+            }}
+            className="cta-highlight-get-in-touch cursor-pointer inline-flex shrink-0 items-center justify-center self-start rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 font-mono text-xs tracking-[0.18em] text-zinc-100 uppercase transition hover:border-white/25 hover:bg-white/10 sm:self-end"
+          >
+            Get in touch
+          </a>
         </div>
       </GlowFrame>
     );

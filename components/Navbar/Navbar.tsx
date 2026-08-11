@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { FiDownload } from "react-icons/fi";
 import { NAV_BRAND, NAV_LINKS } from "./nav.config";
 
 const navShell =
@@ -19,6 +20,35 @@ function readTier(): NavTier {
   if (window.matchMedia("(min-width: 768px)").matches) return "tablet";
   return "mobile";
 }
+
+function ResumeCtaButton({ className = "" }: { className?: string }) {
+  return (
+    <a
+      href="/api/resume/download"
+      download
+      className={`inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3.5 py-1.5 text-xs font-mono font-semibold text-zinc-100 transition-all hover:bg-white/25 hover:text-white shadow-sm ${className}`}
+      title="Download Resume / CV"
+    >
+      <FiDownload className="h-3.5 w-3.5 text-emerald-400" />
+      <span>Resume / CV</span>
+    </a>
+  );
+}
+
+const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  if (href.includes("#")) {
+    const hash = href.split("#")[1];
+    if (window.location.pathname === "/" || href.startsWith("#")) {
+      e.preventDefault();
+      const elem = document.getElementById(hash);
+      if (elem) {
+        elem.scrollIntoView({ behavior: "smooth" });
+      } else {
+        window.location.href = href;
+      }
+    }
+  }
+};
 
 function MobileNav({
   open,
@@ -41,33 +71,37 @@ function MobileNav({
           {NAV_BRAND.label}
         </Link>
 
-        <button
-          type="button"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-white/10 bg-white/5 text-zinc-100 transition-colors hover:bg-white/10"
-          aria-expanded={open}
-          aria-controls="mobile-nav"
-          aria-label={open ? "Close menu" : "Open menu"}
-          onClick={() => setOpen((value) => !value)}
-        >
-          <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
-          <span className="relative block h-3.5 w-4">
-            <span
-              className={`absolute left-0 block h-0.5 w-full bg-current transition-all duration-300 ${
-                open ? "top-1.5 rotate-45" : "top-0"
-              }`}
-            />
-            <span
-              className={`absolute left-0 top-1.5 block h-0.5 w-full bg-current transition-all duration-300 ${
-                open ? "opacity-0" : "opacity-100"
-              }`}
-            />
-            <span
-              className={`absolute left-0 block h-0.5 w-full bg-current transition-all duration-300 ${
-                open ? "top-1.5 -rotate-45" : "top-3"
-              }`}
-            />
-          </span>
-        </button>
+        <div className="flex items-center gap-2">
+          <ResumeCtaButton />
+
+          <button
+            type="button"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-white/10 bg-white/5 text-zinc-100 transition-colors hover:bg-white/10"
+            aria-expanded={open}
+            aria-controls="mobile-nav"
+            aria-label={open ? "Close menu" : "Open menu"}
+            onClick={() => setOpen((value) => !value)}
+          >
+            <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
+            <span className="relative block h-3.5 w-4">
+              <span
+                className={`absolute left-0 block h-0.5 w-full bg-current transition-all duration-300 ${
+                  open ? "top-1.5 rotate-45" : "top-0"
+                }`}
+              />
+              <span
+                className={`absolute left-0 top-1.5 block h-0.5 w-full bg-current transition-all duration-300 ${
+                  open ? "opacity-0" : "opacity-100"
+                }`}
+              />
+              <span
+                className={`absolute left-0 block h-0.5 w-full bg-current transition-all duration-300 ${
+                  open ? "top-1.5 -rotate-45" : "top-3"
+                }`}
+              />
+            </span>
+          </button>
+        </div>
       </nav>
 
       <div
@@ -82,7 +116,10 @@ function MobileNav({
               <Link
                 href={item.href}
                 className="block rounded-lg px-3 py-2.5 text-sm text-zinc-200 transition-colors hover:bg-white/5 hover:text-white"
-                onClick={() => setOpen(false)}
+                onClick={(e) => {
+                  setOpen(false);
+                  handleNavClick(e, item.href);
+                }}
               >
                 {item.label}
               </Link>
@@ -104,15 +141,22 @@ function TabletNav() {
         {NAV_BRAND.label}
       </Link>
 
-      <ul className="flex items-center gap-5">
-        {NAV_LINKS.map((item) => (
-          <li key={item.href}>
-            <Link href={item.href} className={linkClass}>
-              {item.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <div className="flex items-center gap-5">
+        <ul className="flex items-center gap-5">
+          {NAV_LINKS.map((item) => (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                className={linkClass}
+                onClick={(e) => handleNavClick(e, item.href)}
+              >
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <ResumeCtaButton />
+      </div>
     </nav>
   );
 }
@@ -127,15 +171,22 @@ function DesktopNav() {
         {NAV_BRAND.label}
       </Link>
 
-      <ul className="flex items-center gap-8">
-        {NAV_LINKS.map((item) => (
-          <li key={item.href}>
-            <Link href={item.href} className={linkClass}>
-              {item.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <div className="flex items-center gap-8">
+        <ul className="flex items-center gap-8">
+          {NAV_LINKS.map((item) => (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                className={linkClass}
+                onClick={(e) => handleNavClick(e, item.href)}
+              >
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <ResumeCtaButton />
+      </div>
     </nav>
   );
 }

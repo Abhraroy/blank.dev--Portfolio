@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import type { SelectedProject } from "./selectedWork.config";
+import { trackProjectClicked } from "@/lib/track";
 
 type ProjectCardProps = {
   project: SelectedProject;
@@ -48,7 +49,10 @@ export default function ProjectCard({
     >
       <motion.button
         type="button"
-        onClick={() => onOpen(project)}
+        onClick={() => {
+          trackProjectClicked(project.id);
+          onOpen(project);
+        }}
         className="group block w-full cursor-pointer text-left outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
         whileHover={{ y: -4 }}
         whileTap={{ scale: 0.99 }}

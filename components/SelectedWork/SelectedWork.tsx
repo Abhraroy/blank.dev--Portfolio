@@ -26,7 +26,55 @@ export default function SelectedWork() {
 
   const dynamicProjects: SelectedProject[] = useMemo(() => {
     if (!selectedWorkCMS || !selectedWorkCMS.items || selectedWorkCMS.items.length === 0) {
-      return FALLBACK_PROJECTS;
+      if (projects.length > 0) {
+        return projects.map((proj, idx) => {
+          const modeContent = proj.modeContents?.[0];
+          return {
+            id: proj.id,
+            slug: proj.slug,
+            number: (idx + 1).toString().padStart(2, "0"),
+            name: proj.project_name || "Placeholder",
+            oneLiner: modeContent?.project_description || proj.project_name || "Placeholder",
+            techStack: proj.project_tech && proj.project_tech.length > 0 ? proj.project_tech : ["Placeholder"],
+            metrics: (modeContent?.project_highlights || []).map((h) => ({ label: h })),
+            challenge: modeContent?.project_description || "Placeholder",
+            solution: `Built with ${proj.project_tech?.join(", ") || "Placeholder"}.`,
+            impact: `Active ${proj.project_status || "Placeholder"} product.`,
+            technicalHighlights: modeContent?.project_highlights || ["Placeholder"],
+            offset: idx % 2 === 0 ? "up" : "down",
+          };
+        });
+      }
+      return [
+        {
+          id: "ph-1",
+          slug: "placeholder-1",
+          number: "01",
+          name: "Placeholder",
+          oneLiner: "Placeholder",
+          techStack: ["Placeholder"],
+          metrics: [{ label: "Placeholder" }],
+          challenge: "Placeholder",
+          solution: "Placeholder",
+          impact: "Placeholder",
+          technicalHighlights: ["Placeholder"],
+          offset: "up",
+        },
+        {
+          id: "ph-2",
+          slug: "placeholder-2",
+          number: "02",
+          name: "Placeholder",
+          oneLiner: "Placeholder",
+          techStack: ["Placeholder"],
+          metrics: [{ label: "Placeholder" }],
+          challenge: "Placeholder",
+          solution: "Placeholder",
+          impact: "Placeholder",
+          technicalHighlights: ["Placeholder"],
+          offset: "down",
+        },
+      ];
     }
 
     const activeItems = [...selectedWorkCMS.items]
@@ -48,14 +96,14 @@ export default function SelectedWork() {
           id: item.id,
           slug: `project-${idx + 1}`,
           number: formattedNum,
-          name: "Featured Project",
-          oneLiner: "Interactive web application platform.",
-          techStack: ["Next.js", "TypeScript", "PostgreSQL"],
-          metrics: highlights.length > 0 ? highlights : [{ label: "Production API" }],
-          challenge: "Designing a high-throughput architecture.",
-          solution: "Implemented Next.js App Router and Prisma database layer.",
-          impact: "Delivered sub-100ms response times.",
-          technicalHighlights: ["Prisma PostgreSQL schema", "Next.js server components"],
+          name: "Placeholder",
+          oneLiner: "Placeholder",
+          techStack: ["Placeholder"],
+          metrics: highlights.length > 0 ? highlights : [{ label: "Placeholder" }],
+          challenge: "Placeholder",
+          solution: "Placeholder",
+          impact: "Placeholder",
+          technicalHighlights: ["Placeholder"],
           offset: item.offset as "up" | "down" | undefined,
         };
       }
@@ -64,23 +112,23 @@ export default function SelectedWork() {
         id: proj.id,
         slug: proj.slug,
         number: formattedNum,
-        name: proj.project_name,
-        oneLiner: modeContent?.project_description || `${proj.project_name} production platform.`,
-        techStack: proj.project_tech && proj.project_tech.length > 0 ? proj.project_tech : ["Next.js", "TypeScript", "PostgreSQL"],
+        name: proj.project_name || "Placeholder",
+        oneLiner: modeContent?.project_description || proj.project_name || "Placeholder",
+        techStack: proj.project_tech && proj.project_tech.length > 0 ? proj.project_tech : ["Placeholder"],
         metrics: highlights.length > 0
           ? highlights
-          : (modeContent?.project_highlights || ["REVENUE PLATFORM", "ADVANCED SEARCH"]).map((h) => ({ label: h })),
-        challenge: modeContent?.project_description || "High-performance web architecture.",
-        solution: `Built with ${proj.project_tech.join(", ")}.`,
-        impact: `Active ${proj.project_status.toLowerCase()} product.`,
+          : (modeContent?.project_highlights || ["Placeholder"]).map((h) => ({ label: h })),
+        challenge: modeContent?.project_description || "Placeholder",
+        solution: `Built with ${proj.project_tech?.join(", ") || "Placeholder"}.`,
+        impact: `Active ${proj.project_status || "Placeholder"} product.`,
         technicalHighlights: modeContent?.project_highlights && modeContent.project_highlights.length > 0
           ? modeContent.project_highlights
-          : ["Production deployment", "Optimized DX"],
+          : ["Placeholder"],
         offset: item.offset as "up" | "down" | undefined,
       };
     });
 
-    return derived.length > 0 ? derived : FALLBACK_PROJECTS;
+    return derived;
   }, [projects, projectHighlights, selectedWorkCMS]);
 
   const onOpen = useCallback((project: SelectedProject) => {

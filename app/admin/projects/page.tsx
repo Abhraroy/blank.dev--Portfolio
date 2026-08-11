@@ -9,6 +9,7 @@ import {
   ProjectVisibilityStatus,
 } from "../_components/types";
 import { ArrayInput } from "../_components/ArrayInput";
+import { FileUploader } from "../_components/FileUploader";
 import {
   FiFolder,
   FiPlus,
@@ -22,6 +23,7 @@ import {
   FiLayers,
   FiDollarSign,
   FiUsers,
+  FiFileText,
 } from "react-icons/fi";
 
 const statusOptions: ProjectStatus[] = [
@@ -72,8 +74,11 @@ export default function ProjectsFactsPage() {
   const [projectName, setProjectName] = useState("");
   const [slug, setSlug] = useState("");
   const [projectImage, setProjectImage] = useState("");
+  const [projectImages, setProjectImages] = useState<string[]>([]);
+  const [projectVideos, setProjectVideos] = useState<string[]>([]);
   const [projectUrl, setProjectUrl] = useState("");
   const [projectGithub, setProjectGithub] = useState("");
+  const [projectMdUrl, setProjectMdUrl] = useState("");
   const [projectTags, setProjectTags] = useState<string[]>([]);
   const [projectTech, setProjectTech] = useState<string[]>([]);
   const [projectStatus, setProjectStatus] = useState<ProjectStatus>("ACTIVE");
@@ -96,8 +101,11 @@ export default function ProjectsFactsPage() {
     setProjectName("");
     setSlug("");
     setProjectImage("");
+    setProjectImages([]);
+    setProjectVideos([]);
     setProjectUrl("");
     setProjectGithub("");
+    setProjectMdUrl("");
     setProjectTags(["Full-Stack", "Web3"]);
     setProjectTech(["Next.js", "TypeScript", "Tailwind CSS"]);
     setProjectStatus("ACTIVE");
@@ -113,13 +121,16 @@ export default function ProjectsFactsPage() {
     setIsModalOpen(true);
   };
 
-  const openEditModal = (project: Project) => {
+  const openEditModal = (project: Project & { project_md_url?: string | null; project_images?: string[]; project_videos?: string[] }) => {
     setEditingProject(project);
     setProjectName(project.project_name);
     setSlug(project.slug);
     setProjectImage(project.project_image || "");
+    setProjectImages(project.project_images || []);
+    setProjectVideos(project.project_videos || []);
     setProjectUrl(project.project_url || "");
     setProjectGithub(project.project_github || "");
+    setProjectMdUrl(project.project_md_url || "");
     setProjectTags(project.project_tags || []);
     setProjectTech(project.project_tech || []);
     setProjectStatus(project.project_status);
@@ -156,14 +167,17 @@ export default function ProjectsFactsPage() {
         project_name: projectName.trim(),
         slug: computedSlug,
         project_image: projectImage || null,
+        project_images: projectImages,
+        project_videos: projectVideos,
         project_url: projectUrl || null,
         project_github: projectGithub || null,
+        project_md_url: projectMdUrl || null,
         project_tags: projectTags,
         project_tech: projectTech,
         project_status: projectStatus,
         project_type: projectType,
         project_visibility_status: projectVisibility,
-      });
+      } as any);
     } else {
       const newProjId = `proj-${Date.now()}`;
       targetProjectId = newProjId;
@@ -171,14 +185,17 @@ export default function ProjectsFactsPage() {
         project_name: projectName.trim(),
         slug: computedSlug,
         project_image: projectImage || null,
+        project_images: projectImages,
+        project_videos: projectVideos,
         project_url: projectUrl || null,
         project_github: projectGithub || null,
+        project_md_url: projectMdUrl || null,
         project_tags: projectTags,
         project_tech: projectTech,
         project_status: projectStatus,
         project_type: projectType,
         project_visibility_status: projectVisibility,
-      });
+      } as any);
     }
 
     if (targetProjectId) {
@@ -222,34 +239,34 @@ export default function ProjectsFactsPage() {
       {/* Top Title Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
         <div>
-          <p className="font-mono text-[10px] tracking-[0.28em] text-zinc-500 uppercase">
+          <p className="font-mono text-xs tracking-[0.28em] text-zinc-400 uppercase font-semibold">
             Domain Facts
           </p>
-          <h1 className="text-xl font-mono font-bold text-zinc-50 flex items-center gap-2 mt-1">
-            <FiFolder className="text-zinc-300 h-5 w-5" /> Factual Projects Pool
+          <h1 className="text-2xl font-mono font-bold text-zinc-50 flex items-center gap-2 mt-1">
+            <FiFolder className="text-zinc-300 h-6 w-6" /> Factual Projects Pool
           </h1>
-          <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+          <p className="text-sm text-zinc-300 mt-1 leading-relaxed">
             Manage project facts (`Project`), feature badges (`ProjectHighlight`), and per-mode storytelling (`ProjectModeContent`).
           </p>
         </div>
         <button
           onClick={openCreateModal}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/20 bg-white/10 hover:bg-white/20 text-zinc-50 font-mono text-xs font-semibold shadow-sm transition-all"
+          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-white/20 bg-white/10 hover:bg-white/20 text-zinc-50 font-mono text-sm font-semibold shadow-sm transition-all"
         >
-          <FiPlus className="h-4 w-4" /> Add Project
+          <FiPlus className="h-4.5 w-4.5" /> Add Project
         </button>
       </div>
 
       {/* Filter & Search Bar */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-zinc-950/40 border border-white/10 rounded-2xl p-4 backdrop-blur-xl">
         <div className="relative w-full md:w-80 font-mono">
-          <FiSearch className="absolute left-3.5 top-3 text-zinc-500 h-4 w-4" />
+          <FiSearch className="absolute left-3.5 top-3.5 text-zinc-400 h-4.5 w-4.5" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search projects, slugs, or tech..."
-            className="w-full rounded-xl border border-white/10 bg-zinc-950 pl-10 pr-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:border-white/30 focus:outline-none"
+            className="w-full rounded-xl border border-white/10 bg-zinc-950 pl-10 pr-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-white/30 focus:outline-none font-mono"
           />
         </div>
 
@@ -476,27 +493,27 @@ export default function ProjectsFactsPage() {
             className="w-full max-w-3xl rounded-2xl border border-white/20 bg-zinc-950 p-6 md:p-8 space-y-6 shadow-2xl my-8 max-h-[90vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
-              <h2 className="text-base font-bold text-zinc-50 flex items-center gap-2">
-                <FiFolder className="text-zinc-300" />
+              <h2 className="text-xl font-bold text-zinc-50 flex items-center gap-2">
+                <FiFolder className="text-zinc-300 h-5 w-5" />
                 {editingProject ? "Edit Project Data" : "Create New Project"}
               </h2>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-zinc-500 hover:text-zinc-300"
+                className="text-zinc-400 hover:text-zinc-200"
               >
-                <FiX className="h-5 w-5" />
+                <FiX className="h-6 w-6" />
               </button>
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-semibold border-b border-white/5 pb-1">
+              <h3 className="text-xs uppercase tracking-[0.2em] text-zinc-400 font-semibold border-b border-white/5 pb-1">
                 Project Facts (`Project`)
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="block text-[10px] uppercase text-zinc-400">
+                  <label className="block text-xs uppercase text-zinc-400 font-semibold">
                     Project Name *
                   </label>
                   <input
@@ -505,12 +522,12 @@ export default function ProjectsFactsPage() {
                     value={projectName}
                     onChange={(e) => setProjectName(e.target.value)}
                     placeholder="e.g. BlankDev Engine"
-                    className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:border-white/30 focus:outline-none"
+                    className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-white/30 focus:outline-none"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="block text-[10px] uppercase text-zinc-400">
+                  <label className="block text-xs uppercase text-zinc-400 font-semibold">
                     URL Slug
                   </label>
                   <input
@@ -518,9 +535,134 @@ export default function ProjectsFactsPage() {
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
                     placeholder="blankdev-engine"
-                    className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:border-white/30 focus:outline-none"
+                    className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-white/30 focus:outline-none"
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                <div className="space-y-1">
+                  <label className="block text-xs uppercase text-zinc-400 font-semibold">
+                    GitHub Repository Link (`project_github`)
+                  </label>
+                  <input
+                    type="url"
+                    value={projectGithub}
+                    onChange={(e) => setProjectGithub(e.target.value)}
+                    placeholder="https://github.com/username/repository"
+                    className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-white/30 focus:outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs uppercase text-zinc-400 font-semibold">
+                    Live Project / Demo Link (`project_url`)
+                  </label>
+                  <input
+                    type="url"
+                    value={projectUrl}
+                    onChange={(e) => setProjectUrl(e.target.value)}
+                    placeholder="https://myproject.com"
+                    className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-white/30 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-2">
+                <FileUploader
+                  label="Project Thumbnail Image (Primary Cover)"
+                  defaultFolder="projects"
+                  acceptedTypes="image"
+                  currentUrl={projectImage}
+                  onUploadSuccess={(url) => setProjectImage(url)}
+                />
+                <input
+                  type="text"
+                  placeholder="Or paste Image URL directly"
+                  value={projectImage}
+                  onChange={(e) => setProjectImage(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:border-white/30 focus:outline-none"
+                />
+              </div>
+
+              {/* Multiple Images Upload Gallery */}
+              <div className="space-y-3 pt-2 border-t border-white/5">
+                <FileUploader
+                  label="Project Image Gallery (Upload Multiple Images to R2)"
+                  defaultFolder="projects"
+                  acceptedTypes="image"
+                  multiple={true}
+                  onMultiUploadSuccess={(newUrls) => setProjectImages((prev) => [...prev, ...newUrls])}
+                />
+                {projectImages.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-[11px] text-zinc-400 font-mono font-semibold">Gallery Images ({projectImages.length}):</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {projectImages.map((imgUrl, idx) => (
+                        <div key={idx} className="relative group rounded-xl overflow-hidden border border-white/10 bg-zinc-900 p-1 flex items-center justify-between gap-1 text-[10px]">
+                          <img src={imgUrl} alt={`Gallery ${idx + 1}`} className="w-10 h-10 object-cover rounded" />
+                          <span className="truncate flex-1 text-zinc-300 px-1">{imgUrl}</span>
+                          <button
+                            type="button"
+                            onClick={() => setProjectImages((prev) => prev.filter((_, i) => i !== idx))}
+                            className="p-1 text-rose-400 hover:text-rose-300 rounded hover:bg-rose-500/20 shrink-0"
+                            title="Remove Image"
+                          >
+                            <FiX className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Multiple Videos Upload */}
+              <div className="space-y-3 pt-2 border-t border-white/5">
+                <FileUploader
+                  label="Project Video Demos (Upload Multiple Videos to R2)"
+                  defaultFolder="videos"
+                  acceptedTypes="video"
+                  multiple={true}
+                  onMultiUploadSuccess={(newUrls) => setProjectVideos((prev) => [...prev, ...newUrls])}
+                />
+                {projectVideos.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-[11px] text-zinc-400 font-mono font-semibold">Demo Videos ({projectVideos.length}):</p>
+                    <div className="space-y-1.5">
+                      {projectVideos.map((vidUrl, idx) => (
+                        <div key={idx} className="flex items-center justify-between gap-2 p-2 rounded-xl border border-purple-500/20 bg-purple-500/10 text-purple-200 text-xs">
+                          <span className="truncate flex-1 font-mono">{vidUrl}</span>
+                          <button
+                            type="button"
+                            onClick={() => setProjectVideos((prev) => prev.filter((_, i) => i !== idx))}
+                            className="p-1 text-rose-400 hover:text-rose-300 rounded hover:bg-rose-500/20 shrink-0"
+                            title="Remove Video"
+                          >
+                            <FiX className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3 pt-2 border-t border-white/5">
+                <FileUploader
+                  label="Project Markdown Content File (.md Upload to Cloudflare R2)"
+                  defaultFolder="docs"
+                  acceptedTypes="md"
+                  currentUrl={projectMdUrl}
+                  onUploadSuccess={(url) => setProjectMdUrl(url)}
+                />
+                <input
+                  type="text"
+                  placeholder="Or paste Markdown (.md) File URL directly"
+                  value={projectMdUrl}
+                  onChange={(e) => setProjectMdUrl(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:border-white/30 focus:outline-none"
+                />
               </div>
 
               <ArrayInput

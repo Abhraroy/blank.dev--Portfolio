@@ -30,6 +30,10 @@ const titleMap: Record<string, { title: string; subtitle: string }> = {
     title: "Centralized CMS Management Hub",
     subtitle: "Full CMS section selection, composition, spatial reordering, and display toggles",
   },
+  "/admin/cms/hero-nodes": {
+    title: "Hero 3D Network Nodes CMS Section",
+    subtitle: "Manage 3D skill nodes, popup card titles, descriptions, tech tags, CTAs, display sequence, and visibility",
+  },
   "/admin/cms/about": {
     title: "About Me CMS Section",
     subtitle: "Manage dynamic visual blocks (Blocks 1..7), items, CTAs, and profile bios",
@@ -60,27 +64,27 @@ export const Header: React.FC = () => {
   return (
     <header className="w-full border-b border-white/10 bg-[#09090b]/80 px-6 md:px-8 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 z-30 backdrop-blur-2xl">
       <div className="min-w-0">
-        <h2 className="text-base font-mono font-semibold text-zinc-50 tracking-tight truncate">
+        <h2 className="text-lg font-mono font-semibold text-zinc-50 tracking-tight truncate">
           {currentInfo.title}
         </h2>
-        <p className="text-xs text-zinc-400 mt-0.5 truncate">{currentInfo.subtitle}</p>
+        <p className="text-xs sm:text-sm text-zinc-400 mt-0.5 truncate">{currentInfo.subtitle}</p>
       </div>
 
       <div className="flex flex-wrap items-center gap-3 min-w-0">
         {/* Active Mode Selector */}
         <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl p-1.5 shadow-sm max-w-full overflow-hidden">
-          <div className="flex items-center gap-1.5 px-2 text-xs text-zinc-400 font-mono shrink-0">
-            <FiLayers className="h-3.5 w-3.5 text-zinc-300" />
+          <div className="flex items-center gap-1.5 px-2 text-xs sm:text-sm text-zinc-300 font-mono font-semibold shrink-0">
+            <FiLayers className="h-4 w-4 text-zinc-200" />
             <span className="hidden sm:inline">Active Persona:</span>
           </div>
-          <div className="flex items-center gap-1 overflow-x-auto max-w-xs sm:max-w-md py-0.5 scrollbar-thin scrollbar-thumb-zinc-700">
+          <div className="flex items-center gap-1 scrollbar-none overflow-x-auto max-w-xs sm:max-w-md py-0.5 ">
             {modes.map((mode) => {
               const isSelected = mode.id === activeModeId;
               return (
                 <button
                   key={mode.id}
                   onClick={() => setActiveModeId(mode.id)}
-                  className={`px-3 py-1 rounded-lg text-xs font-mono whitespace-nowrap transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-mono whitespace-nowrap transition-all ${
                     isSelected
                       ? "bg-white/15 text-zinc-50 shadow-sm font-semibold border border-white/20"
                       : "text-zinc-400 hover:text-zinc-200 hover:bg-white/5"
@@ -94,9 +98,9 @@ export const Header: React.FC = () => {
         </div>
 
         {/* Database Status indicator */}
-        <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs text-zinc-400 shrink-0">
-          <FiActivity className="h-3.5 w-3.5 text-emerald-400 animate-pulse" />
-          <span className="font-mono text-[11px] text-zinc-300">Prisma Client</span>
+        <div className="hidden xl:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs sm:text-sm text-zinc-400 shrink-0">
+          <FiActivity className="h-4 w-4 text-emerald-400 animate-pulse" />
+          <span className="font-mono text-xs sm:text-sm text-zinc-300 font-semibold">Prisma Client</span>
         </div>
       </div>
     </header>

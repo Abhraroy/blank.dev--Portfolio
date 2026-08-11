@@ -29,11 +29,11 @@ export function useFibonacciSphere(
       const sliced = sorted.slice(0, Math.min(count, sorted.length));
       skills = sliced.map((item) => ({
         id: item.nodeId || item.id,
-        label: item.label,
-        title: item.title,
-        description: item.description,
-        techStack: item.techStack,
-        cta: { label: item.ctaLabel, href: item.ctaHref },
+        label: item.label || "Placeholder",
+        title: item.title || "Placeholder",
+        description: item.description || "Placeholder",
+        techStack: item.techStack && item.techStack.length > 0 ? item.techStack : ["Placeholder"],
+        cta: { label: item.ctaLabel || "Placeholder", href: item.ctaHref || "/#work" },
         image: item.image || undefined,
         cardWidth: item.cardWidth || undefined,
         cardHeight: item.cardHeight || undefined,
@@ -45,7 +45,16 @@ export function useFibonacciSphere(
         ctaFontSize: item.ctaFontSize || undefined,
       }));
     } else {
-      skills = getSkillsForCount(count);
+      skills = [
+        {
+          id: "ph-node-1",
+          label: "Placeholder",
+          title: "Placeholder Node",
+          description: "Placeholder node description",
+          techStack: ["Placeholder"],
+          cta: { label: "Placeholder", href: "/#work" },
+        },
+      ];
     }
 
     const positions = fibonacciSphere(skills.length, radius);

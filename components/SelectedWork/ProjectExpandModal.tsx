@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect } from "react";
 import type { SelectedProject } from "./selectedWork.config";
+import { trackProjectViewed } from "@/lib/track";
 
 type ProjectExpandModalProps = {
   project: SelectedProject | null;
@@ -143,7 +144,10 @@ export default function ProjectExpandModal({
                 <Link
                   href={`/projects/${project.slug}`}
                   className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/10 px-5 py-2.5 font-mono text-xs tracking-[0.18em] text-zinc-100 uppercase transition hover:border-white/25 hover:bg-white/15"
-                  onClick={onClose}
+                  onClick={() => {
+                    trackProjectViewed(project.id);
+                    onClose();
+                  }}
                 >
                   Click me
                 </Link>

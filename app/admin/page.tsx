@@ -1,274 +1,415 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
-import { useAdminStore } from "./_components/store";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-  FiLayers,
-  FiUser,
-  FiFolder,
-  FiBriefcase,
-  FiArrowRight,
-  FiCode,
-  FiDatabase,
-  FiCheckCircle,
-  FiSliders,
+  FiDownload,
+  FiMail,
+  FiMessageSquare,
+  FiUsers,
+  FiMousePointer,
+  FiEye,
+  FiRefreshCw,
+  FiActivity,
+  FiTrendingUp,
+  FiBarChart2,
+  FiArrowDownCircle,
 } from "react-icons/fi";
 
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
+
+interface WebsiteInteraction {
+  resume_downloaded: number;
+  contact_form_submit: number;
+  contact_interested: number;
+  scrolled_past_hero: number;
+}
+
+interface ProjectInteractionRow {
+  id: string;
+  projectId: string;
+  project_clicked: number;
+  project_viewed: number;
+  createdAt: string;
+  updatedAt: string;
+  project: {
+    project_name: string;
+    slug: string;
+    project_image: string | null;
+  };
+}
+
+interface DashboardData {
+  websiteInteraction: WebsiteInteraction;
+  projectInteractions: ProjectInteractionRow[];
+  totalProjects: number;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Main Page                                                          */
+/* ------------------------------------------------------------------ */
+
 export default function AdminDashboard() {
-  const { modes, details, projects, experiences, activeModeId } = useAdminStore();
-  const [showJsonInspector, setShowJsonInspector] = useState(false);
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const activeMode = modes.find((m) => m.id === activeModeId) || modes[0];
+  const fetchDashboard = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
+    try {
+      const res = await fetch("/api/admin/dashboard");
+      if (res.ok) {
+        setData(await res.json());
+      }
+    } catch (e) {
+      console.error("Dashboard fetch error:", e);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
-  const activeDetailsContent = details.modeContents?.find(
-    (c) => c.portfolioModeId === activeModeId
-  );
+  useEffect(() => {
+    fetchDashboard();
+  }, [fetchDashboard]);
 
-  const statCards = [
+  /* Skeleton while loading */
+  if (loading) {
+    return (
+      <div className="space-y-8 animate-pulse">
+        <div className="h-28 rounded-2xl bg-white/5 border border-white/10" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-36 rounded-2xl bg-white/5 border border-white/10" />
+          ))}
+        </div>
+        <div className="h-64 rounded-2xl bg-white/5 border border-white/10" />
+      </div>
+    );
+  }
+
+  const w = data?.websiteInteraction ?? {
+    resume_downloaded: 0,
+    contact_form_submit: 0,
+    contact_interested: 0,
+    scrolled_past_hero: 0,
+  };
+
+  const totalWebsiteInteractions =
+    w.resume_downloaded + w.contact_form_submit + w.contact_interested + w.scrolled_past_hero;
+
+  const totalProjectClicks =
+    data?.projectInteractions.reduce((s, p) => s + p.project_clicked, 0) ?? 0;
+  const totalProjectViews =
+    data?.projectInteractions.reduce((s, p) => s + p.project_viewed, 0) ?? 0;
+
+  const websiteCards = [
     {
-      title: "Portfolio Modes",
-      count: modes.length,
-      label: "Master Personas",
-      icon: FiLayers,
-      href: "/admin/modes",
+      title: "Resume Downloaded",
+      value: w.resume_downloaded,
+      icon: FiDownload,
+      color: "text-emerald-400",
+      bg: "bg-emerald-400/10",
+      border: "border-emerald-400/20",
+      glow: "shadow-[0_0_20px_rgba(52,211,153,0.15)]",
     },
     {
-      title: "Projects",
-      count: projects.length,
-      label: "Portfolio Work Items",
-      icon: FiFolder,
-      href: "/admin/projects",
+      title: "Contact Form Submitted",
+      value: w.contact_form_submit,
+      icon: FiMail,
+      color: "text-sky-400",
+      bg: "bg-sky-400/10",
+      border: "border-sky-400/20",
+      glow: "shadow-[0_0_20px_rgba(56,189,248,0.15)]",
     },
     {
-      title: "Experience",
-      count: experiences.length,
-      label: "Career Milestones",
-      icon: FiBriefcase,
-      href: "/admin/experience",
+      title: "Contact Interested",
+      value: w.contact_interested,
+      icon: FiUsers,
+      color: "text-violet-400",
+      bg: "bg-violet-400/10",
+      border: "border-violet-400/20",
+      glow: "shadow-[0_0_20px_rgba(167,139,250,0.15)]",
     },
     {
-      title: "CMS Hub",
-      count: 4,
-      label: "Composed Sections",
-      icon: FiSliders,
-      href: "/admin/cms",
+      title: "Scrolled Past Hero",
+      value: w.scrolled_past_hero,
+      icon: FiArrowDownCircle,
+      color: "text-amber-400",
+      bg: "bg-amber-400/10",
+      border: "border-amber-400/20",
+      glow: "shadow-[0_0_20px_rgba(251,191,36,0.15)]",
     },
   ];
 
   return (
     <div className="space-y-8">
-      {/* Top Banner / Welcome */}
-      <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-zinc-950/60 backdrop-blur-xl p-6 md:p-8 shadow-[0_0_20px_rgba(255,255,255,0.08)]">
+      {/* ── Hero Banner ── */}
+      <div className="relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-zinc-950/80 via-zinc-900/40 to-zinc-950/80 backdrop-blur-xl p-6 md:p-8 shadow-[0_0_30px_rgba(255,255,255,0.06)]">
+        {/* Decorative blurs */}
+        <div className="pointer-events-none absolute -top-20 -right-20 h-60 w-60 rounded-full bg-emerald-500/8 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-violet-500/8 blur-3xl" />
+
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-zinc-300 text-xs font-mono">
-              <FiDatabase className="h-3.5 w-3.5 text-zinc-200" /> Direct Prisma Model Interface
+              <FiActivity className="h-3.5 w-3.5 text-emerald-400" />
+              Live Analytics Dashboard
             </div>
             <h1 className="text-2xl md:text-3xl font-mono font-bold tracking-tight text-zinc-50">
-              Portfolio Operations
+              Website Interactions
             </h1>
-            <p className="text-sm text-zinc-400 leading-relaxed font-sans">
-              Manage factual domain records (Projects, Experience, Details) and CMS section compositions per <span className="text-zinc-200 font-semibold font-mono">PortfolioMode</span> using the client design standard.
+            <p className="text-sm text-zinc-400 leading-relaxed">
+              Real-time tracking of visitor engagement across your portfolio —
+              resume downloads, contact form submissions, and interest signals.
             </p>
           </div>
-          <button
-            onClick={() => setShowJsonInspector(!showJsonInspector)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 bg-white/5 text-xs font-mono font-semibold text-zinc-200 hover:bg-white/10 hover:text-white transition-all shadow-sm"
-          >
-            <FiCode className="h-4 w-4" />
-            {showJsonInspector ? "Hide Prisma Payload" : "View Live DB JSON"}
-          </button>
+
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex flex-col items-end gap-1">
+              <span className="text-3xl font-extrabold font-mono text-zinc-50 tracking-tight">
+                {totalWebsiteInteractions}
+              </span>
+              <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500">
+                Total Interactions
+              </span>
+            </div>
+            <button
+              onClick={() => fetchDashboard(true)}
+              disabled={refreshing}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 bg-white/5 text-xs font-mono font-semibold text-zinc-200 hover:bg-white/10 hover:text-white transition-all shadow-sm disabled:opacity-50"
+            >
+              <FiRefreshCw
+                className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+              />
+              {refreshing ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Metric Cards Grid */}
+      {/* ── Website Interaction Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {statCards.map((card) => {
+        {websiteCards.map((card) => {
           const Icon = card.icon;
           return (
-            <Link
+            <div
               key={card.title}
-              href={card.href}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/40 p-5 hover:border-white/30 transition-all duration-300 backdrop-blur-xl shadow-[0_0_12px_rgba(255,255,255,0.06)] hover:shadow-[0_0_20px_rgba(255,255,255,0.12)]"
+              className={`relative overflow-hidden rounded-2xl border ${card.border} bg-zinc-950/40 p-5 backdrop-blur-xl transition-all duration-300 ${card.glow} hover:scale-[1.02]`}
             >
+              {/* Accent top line */}
+              <div
+                className={`absolute top-0 left-0 right-0 h-[2px] ${card.bg}`}
+              />
+
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500">{card.title}</span>
-                <div className="h-9 w-9 rounded-xl border border-white/10 bg-white/5 flex items-center justify-center text-zinc-300 group-hover:text-white transition-colors">
+                <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500">
+                  {card.title}
+                </span>
+                <div
+                  className={`h-9 w-9 rounded-xl ${card.bg} flex items-center justify-center ${card.color}`}
+                >
                   <Icon className="h-4 w-4" />
                 </div>
               </div>
-              <div className="mt-4 flex items-baseline justify-between">
-                <span className="text-3xl font-extrabold text-zinc-50 font-mono tracking-tight">
-                  {card.count}
+
+              <div className="mt-4">
+                <span className="text-4xl font-extrabold text-zinc-50 font-mono tracking-tight">
+                  {card.value}
                 </span>
-                <span className="text-xs text-zinc-500 font-mono">{card.label}</span>
               </div>
-              <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs font-mono text-zinc-400 group-hover:text-zinc-200">
-                <span>Open Section</span>
-                <FiArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+
+              <div className="mt-3 pt-3 border-t border-white/8">
+                <div className="flex items-center gap-1.5 text-xs font-mono text-zinc-500">
+                  <FiTrendingUp className="h-3 w-3" />
+                  <span>All time</span>
+                </div>
               </div>
-            </Link>
+            </div>
           );
         })}
       </div>
 
-      {/* Active Persona Snapshot */}
-      <div className="rounded-2xl border border-white/10 bg-zinc-950/40 p-6 space-y-6 backdrop-blur-xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
-          <div>
+      {/* ── Project Interactions Section ── */}
+      <div className="rounded-2xl border border-white/10 bg-zinc-950/40 backdrop-blur-xl overflow-hidden">
+        {/* Section header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 border-b border-white/10">
+          <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.2em] font-semibold">
-                Active Persona Context
-              </span>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-white/10 text-zinc-200 border border-white/20">
-                {activeMode?.mode_name}
-              </span>
+              <FiBarChart2 className="h-4 w-4 text-zinc-400" />
+              <h2 className="text-sm font-mono font-semibold text-zinc-100 uppercase tracking-[0.12em]">
+                Project Interactions
+              </h2>
             </div>
-            <h2 className="text-lg font-mono font-semibold text-zinc-50 mt-1">
-              Persona Storytelling Summary
-            </h2>
+            <p className="text-xs text-zinc-500">
+              Clicks and views tracked per project across Selected Work & Showcase sections
+            </p>
           </div>
-          <Link
-            href="/admin/modes"
-            className="text-xs font-mono text-zinc-300 hover:text-white font-medium inline-flex items-center gap-1"
-          >
-            Manage Modes <FiArrowRight className="h-3 w-3" />
-          </Link>
+
+          {/* Summary pills */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-amber-400/20 bg-amber-400/10 text-xs font-mono text-amber-300">
+              <FiMousePointer className="h-3 w-3" />
+              {totalProjectClicks} clicks
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-cyan-400/20 bg-cyan-400/10 text-xs font-mono text-cyan-300">
+              <FiEye className="h-3 w-3" />
+              {totalProjectViews} views
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Details Overview */}
-          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-[0.2em]">
-                Headline & Bio
-              </h3>
-              <FiUser className="h-4 w-4 text-zinc-400" />
-            </div>
-            {activeDetailsContent ? (
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-zinc-200">
-                  {activeDetailsContent.headline || "No headline set"}
-                </p>
-                <p className="text-xs text-zinc-400 leading-relaxed line-clamp-2">
-                  {activeDetailsContent.short_bio || "No short bio set"}
-                </p>
-                <div className="pt-2 flex flex-wrap gap-1.5">
-                  {activeDetailsContent.highlights?.map((h, i) => (
-                    <span
-                      key={i}
-                      className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-white/5 text-zinc-300 border border-white/10"
-                    >
-                      {h}
+        {/* Table */}
+        {data?.projectInteractions && data.projectInteractions.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-white/8">
+                  <th className="py-3 px-6 text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500 font-semibold">
+                    Project
+                  </th>
+                  <th className="py-3 px-6 text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500 font-semibold text-center">
+                    <span className="inline-flex items-center gap-1">
+                      <FiMousePointer className="h-3 w-3" /> Clicked
                     </span>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <p className="text-xs font-mono text-zinc-500 italic">
-                No storytelling content configured for this mode yet.
-              </p>
-            )}
+                  </th>
+                  <th className="py-3 px-6 text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500 font-semibold text-center">
+                    <span className="inline-flex items-center gap-1">
+                      <FiEye className="h-3 w-3" /> Viewed
+                    </span>
+                  </th>
+                  <th className="py-3 px-6 text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500 font-semibold text-right">
+                    Click → View %
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.projectInteractions.map((row, idx) => {
+                  const conversionRate =
+                    row.project_clicked > 0
+                      ? ((row.project_viewed / row.project_clicked) * 100).toFixed(1)
+                      : "—";
+                  return (
+                    <tr
+                      key={row.id}
+                      className="border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors"
+                    >
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-3">
+                          {row.project.project_image ? (
+                            <img
+                              src={row.project.project_image}
+                              alt=""
+                              className="h-8 w-8 rounded-lg object-cover border border-white/10"
+                            />
+                          ) : (
+                            <div className="h-8 w-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-zinc-600 text-xs font-mono font-bold">
+                              {(idx + 1).toString().padStart(2, "0")}
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-sm font-medium text-zinc-200 leading-tight">
+                              {row.project.project_name}
+                            </p>
+                            <p className="text-[11px] text-zinc-600 font-mono">
+                              /{row.project.slug}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6 text-center">
+                        <span className="inline-flex items-center gap-1 text-sm font-mono font-semibold text-amber-300">
+                          {row.project_clicked}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6 text-center">
+                        <span className="inline-flex items-center gap-1 text-sm font-mono font-semibold text-cyan-300">
+                          {row.project_viewed}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6 text-right">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-mono font-semibold ${
+                            conversionRate === "—"
+                              ? "bg-white/5 text-zinc-600"
+                              : parseFloat(conversionRate) >= 50
+                                ? "bg-emerald-400/10 text-emerald-400 border border-emerald-400/20"
+                                : parseFloat(conversionRate) >= 20
+                                  ? "bg-amber-400/10 text-amber-400 border border-amber-400/20"
+                                  : "bg-rose-400/10 text-rose-400 border border-rose-400/20"
+                          }`}
+                        >
+                          {conversionRate === "—" ? "—" : `${conversionRate}%`}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-
-          {/* Linked Projects */}
-          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-[0.2em]">
-                Projects with Mode Content
-              </h3>
-              <FiFolder className="h-4 w-4 text-zinc-400" />
+        ) : (
+          <div className="flex flex-col items-center justify-center py-16 gap-3">
+            <div className="h-12 w-12 rounded-xl border border-white/10 bg-white/5 flex items-center justify-center text-zinc-600">
+              <FiMousePointer className="h-5 w-5" />
             </div>
-            <div className="space-y-2">
-              {projects.map((proj) => {
-                const hasContent = proj.modeContents?.some(
-                  (c) => c.portfolioModeId === activeModeId
-                );
-                return (
-                  <div
-                    key={proj.id}
-                    className="flex items-center justify-between text-xs py-1.5 border-b border-white/5 last:border-0"
-                  >
-                    <span className="text-zinc-300 font-medium">{proj.project_name}</span>
-                    {hasContent ? (
-                      <span className="inline-flex items-center text-[10px] text-emerald-400 font-mono">
-                        <FiCheckCircle className="mr-1 h-3 w-3" /> Configured
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-zinc-600 font-mono">Fact Only</span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            <p className="text-sm text-zinc-500 font-mono">
+              No project interactions yet
+            </p>
+            <p className="text-xs text-zinc-600 max-w-xs text-center">
+              Interactions will appear here once visitors start clicking on your projects
+            </p>
           </div>
-
-          {/* Linked Experience */}
-          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-[10px] font-semibold text-zinc-500 uppercase font-mono tracking-[0.2em]">
-                Experience with Mode Content
-              </h3>
-              <FiBriefcase className="h-4 w-4 text-zinc-400" />
-            </div>
-            <div className="space-y-2">
-              {experiences.map((exp) => {
-                const hasContent = exp.modeContents?.some(
-                  (c) => c.portfolioModeId === activeModeId
-                );
-                return (
-                  <div
-                    key={exp.id}
-                    className="flex items-center justify-between text-xs py-1.5 border-b border-white/5 last:border-0"
-                  >
-                    <div>
-                      <div className="text-zinc-300 font-medium">{exp.role_title}</div>
-                      <div className="text-[11px] text-zinc-500">{exp.company_name}</div>
-                    </div>
-                    {hasContent ? (
-                      <span className="inline-flex items-center text-[10px] text-emerald-400 font-mono">
-                        <FiCheckCircle className="mr-1 h-3 w-3" /> Configured
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-zinc-600 font-mono">Fact Only</span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* JSON Inspector Payload Modal */}
-      {showJsonInspector && (
-        <div className="rounded-2xl border border-white/10 bg-zinc-950 p-6 space-y-4 shadow-2xl backdrop-blur-xl">
-          <div className="flex items-center justify-between border-b border-white/10 pb-3">
-            <div className="flex items-center gap-2">
-              <FiCode className="h-4 w-4 text-zinc-300" />
-              <h3 className="text-sm font-semibold text-zinc-100 font-mono">
-                Prisma Client JSON Payload
-              </h3>
+      {/* ── Quick Summary Footer ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {[
+          {
+            label: "Total Projects",
+            value: data?.totalProjects ?? 0,
+            icon: FiBarChart2,
+            accent: "text-zinc-400",
+          },
+          {
+            label: "Projects Tracked",
+            value: data?.projectInteractions.length ?? 0,
+            icon: FiActivity,
+            accent: "text-zinc-400",
+          },
+          {
+            label: "Total Clicks",
+            value: totalProjectClicks,
+            icon: FiMousePointer,
+            accent: "text-amber-400",
+          },
+          {
+            label: "Total Views",
+            value: totalProjectViews,
+            icon: FiEye,
+            accent: "text-cyan-400",
+          },
+        ].map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <div
+              key={stat.label}
+              className="rounded-xl border border-white/8 bg-zinc-950/30 p-4 text-center backdrop-blur-sm"
+            >
+              <Icon className={`h-4 w-4 mx-auto ${stat.accent}`} />
+              <p className="mt-2 text-xl font-mono font-bold text-zinc-100">
+                {stat.value}
+              </p>
+              <p className="mt-0.5 text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-600">
+                {stat.label}
+              </p>
             </div>
-            <span className="text-xs text-zinc-500 font-mono">
-              Live State Serialization
-            </span>
-          </div>
-          <pre className="max-h-96 overflow-auto rounded-xl border border-white/10 bg-[#09090b] p-4 font-mono text-xs text-zinc-300 selection:bg-zinc-800 selection:text-white">
-            {JSON.stringify(
-              {
-                PortfolioMode: modes,
-                MyDetails: details,
-                Project: projects,
-                Experience: experiences,
-              },
-              null,
-              2
-            )}
-          </pre>
-        </div>
-      )}
+          );
+        })}
+      </div>
     </div>
   );
 }

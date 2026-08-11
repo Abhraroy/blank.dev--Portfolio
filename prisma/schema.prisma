@@ -90,8 +90,11 @@ model Project {
   project_name              String
   slug                      String                  @unique
   project_image             String?
+  project_images            String[]                @default([])
+  project_videos            String[]                @default([])
   project_url               String?
   project_github            String?
+  project_md_url            String?
   project_tags              String[]
   project_tech              String[]
   project_status            ProjectStatus
@@ -104,6 +107,9 @@ model Project {
   highlights   ProjectHighlight[]
   selectedWorkCMSItems SelectedWorkSectionCMSItem[]
   projectShowcaseCMSItems ProjectShowcaseSectionCMSItem[]
+
+  interaction               ProjectInteraction?
+
 
   @@index([project_status])
   @@index([project_type])
@@ -189,6 +195,7 @@ model MyDetails {
   id                  String   @id @default(uuid())
   full_name           String
   profile_image       String?
+  resume_url          String?
   email               String   @unique
   github_url          String?
   linkedin_url        String?
@@ -467,4 +474,79 @@ model ProjectShowcaseSectionCMSItem {
   @@index([projectId])
   @@index([displayOrder])
 }
+
+// ---------------------------------------------------------------------------
+// Hero Nodes CMS Composition Models
+// ---------------------------------------------------------------------------
+
+model HeroSectionCMS {
+  id               String            @id @default(uuid())
+  key              String            @unique @default("HERO_NODES_MAIN")
+  centerNodeLabel  String            @default("blankdev")
+  centerLogoUrl    String?
+  visible          Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  items            HeroNodeCMSItem[]
+}
+
+model HeroNodeCMSItem {
+  id                   String         @id @default(uuid())
+  sectionId            String
+  nodeId               String         // Skill key e.g. "nextjs", "react", "typescript"
+  label                String         // Display label on the 3D sphere node
+  title                String         // Title on the InfoCard popup
+  description          String         // Description body on the InfoCard
+  techStack            String[]       @default([]) // Badges list on the InfoCard
+  ctaLabel             String?        @default("View projects")
+  ctaHref              String?        @default("/#work")
+  image                String?        // Header image/banner URL for InfoCard
+  displayOrder         Int            @default(0)
+  visible              Boolean        @default(true)
+
+  // Sizing & styling overrides for InfoCard
+  cardWidth            String?
+  cardHeight           String?
+  cardMinHeight        String?
+  cardImageHeight      String?
+  titleFontSize        String?
+  descriptionFontSize  String?
+  techBadgeFontSize    String?
+  ctaFontSize          String?
+
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  section              HeroSectionCMS @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@index([sectionId])
+  @@index([nodeId])
+  @@index([displayOrder])
+}
+
+
+
+model WebsiteInteraction{
+  id Int @id @default(1)
+  resume_downloaded Int @default(0)
+  contact_form_submit Int @default(0)
+  contact_interested Int @default(0)
+  scrolled_past_hero Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+model ProjectInteraction {
+  id              String   @id @default(uuid())
+  projectId       String   @unique
+  project_clicked Int      @default(0)
+  project_viewed  Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
 

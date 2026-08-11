@@ -2,21 +2,17 @@
 
 import React, { useState } from "react";
 import { useAdminStore } from "../../_components/store";
+import { FileUploader } from "../../_components/FileUploader";
 import {
   PortfolioBlockData,
-  PortfolioBlockType,
   PortfolioBlockItemType,
   PortfolioBlockItemData,
 } from "../../_components/types";
 import {
   FiLayout,
-  FiPlus,
-  FiTrash2,
   FiEdit3,
   FiEye,
   FiEyeOff,
-  FiArrowUp,
-  FiArrowDown,
   FiSave,
   FiCheck,
   FiImage,
@@ -24,16 +20,77 @@ import {
   FiList,
   FiLayers,
   FiFilter,
+  FiPlus,
+  FiTrash2,
 } from "react-icons/fi";
 
-const BLOCK_TYPES: PortfolioBlockType[] = [
-  "HERO",
-  "CARD",
-  "PROFILE",
-  "TEXT",
-  "LIST",
-  "MEDIA",
-  "CTA",
+const FIXED_BLOCK_DEFS: {
+  blockNumber: number;
+  type: "HERO" | "CARD" | "PROFILE";
+  positionLabel: string;
+  defaultLabel: string;
+  defaultHeading: string;
+  defaultDescription: string;
+  defaultCtaText?: string;
+  defaultCtaUrl?: string;
+}[] = [
+  {
+    blockNumber: 1,
+    type: "HERO",
+    positionLabel: "Block 1 — Top Horizontal Hero (Row 1)",
+    defaultLabel: "About me",
+    defaultHeading: "Building interactive products with clarity and craft.",
+    defaultDescription:
+      "I design and ship web experiences that feel alive — from 3D portfolio surfaces to production APIs.",
+  },
+  {
+    blockNumber: 2,
+    type: "CARD",
+    positionLabel: "Block 2 — Horizontal Card (Row 2, Left)",
+    defaultLabel: "Focus",
+    defaultHeading: "Product engineering",
+    defaultDescription: "Interfaces, APIs, and the space between.",
+  },
+  {
+    blockNumber: 3,
+    type: "CARD",
+    positionLabel: "Block 3 — Horizontal Card (Row 2, Right)",
+    defaultLabel: "Experience",
+    defaultHeading: "4+ yrs",
+    defaultDescription: "Shipping for web & startups",
+  },
+  {
+    blockNumber: 4,
+    type: "CARD",
+    positionLabel: "Block 4 — Horizontal Card (Row 3, Left)",
+    defaultLabel: "Stack",
+    defaultHeading: "Next · TS · Node",
+    defaultDescription: "Prisma · Three · Postgres",
+  },
+  {
+    blockNumber: 5,
+    type: "CARD",
+    positionLabel: "Block 5 — Horizontal Card (Row 3, Middle)",
+    defaultLabel: "Based",
+    defaultHeading: "Remote",
+    defaultDescription: "Open to collab worldwide",
+  },
+  {
+    blockNumber: 6,
+    type: "CARD",
+    positionLabel: "Block 6 — Horizontal Card (Row 3, Right)",
+    defaultLabel: "Status",
+    defaultHeading: "Available",
+    defaultDescription: "Select freelance & full-time",
+  },
+  {
+    blockNumber: 7,
+    type: "PROFILE",
+    positionLabel: "Block 7 — Vertical Profile Panel (Right Column)",
+    defaultLabel: "Profile",
+    defaultHeading: "AR",
+    defaultDescription: "Profile image / avatar visual",
+  },
 ];
 
 export default function AdminAboutCMSPage() {
@@ -44,8 +101,6 @@ export default function AdminAboutCMSPage() {
     setActiveModeId,
     updateBlock,
     addBlock,
-    deleteBlock,
-    reorderBlocks,
     addBlockItem,
     updateBlockItem,
     deleteBlockItem,
@@ -53,83 +108,70 @@ export default function AdminAboutCMSPage() {
 
   const sectionKey = "ABOUT";
   const aboutSection = sections.find((s) => s.key === sectionKey);
-  const allBlocks = aboutSection
-    ? [...aboutSection.blocks].sort((a, b) => a.blockNumber - b.blockNumber)
-    : [];
+  const dbBlocks = aboutSection?.blocks || [];
 
   const [toast, setToast] = useState<string | null>(null);
-  const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
+  const [editingBlockNumber, setEditingBlockNumber] = useState<number | null>(null);
   const [filterMode, setFilterMode] = useState<string | "ALL">("ACTIVE_PERSONA");
 
   const activeMode = modes.find((m) => m.id === activeModeId) || modes[0];
-
-  const displayedBlocks = allBlocks.filter((b) => {
-    if (filterMode === "ALL") return true;
-    if (filterMode === "ACTIVE_PERSONA") {
-      return !b.portfolioModeId || b.portfolioModeId === activeModeId;
-    }
-    return b.portfolioModeId === filterMode;
-  });
-
-  const [newBlockType, setNewBlockType] = useState<PortfolioBlockType>("CARD");
-  const [newBlockLabel, setNewBlockLabel] = useState("");
-  const [newBlockHeading, setNewBlockHeading] = useState("");
-  const [newBlockPersona, setNewBlockPersona] = useState<string>("GLOBAL");
 
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 2500);
   };
 
-  const handleCreateBlock = () => {
-    const maxBlockNum = allBlocks.reduce(
-      (max, b) => Math.max(max, b.blockNumber),
-      0
-    );
-    const nextBlockNum = maxBlockNum + 1;
-
-    addBlock(sectionKey, {
-      blockNumber: nextBlockNum,
-      type: newBlockType,
-      portfolioModeId: newBlockPersona === "GLOBAL" ? null : newBlockPersona,
-      visible: true,
-      label: newBlockLabel || `BLOCK ${nextBlockNum}`,
-      heading: newBlockHeading || "New Heading",
-      subheading: "",
-      description: "",
-      imageUrl: "",
-      imageAlt: "",
-      ctaText: "",
-      ctaUrl: "",
-      ctaType: "LINK",
-      ctaVisible: false,
-      items: [],
+  // Map each fixed block 1..7 to its saved DB block (matching persona/mode or global)
+  const fixedBlocksToDisplay = FIXED_BLOCK_DEFS.map((def) => {
+    const modeMatch = dbBlocks.find((b) => {
+      if (b.blockNumber !== def.blockNumber) return false;
+      if (filterMode === "ALL") return true;
+      if (filterMode === "ACTIVE_PERSONA") {
+        return b.portfolioModeId === activeModeId;
+      }
+      return b.portfolioModeId === filterMode;
     });
 
-    setNewBlockLabel("");
-    setNewBlockHeading("");
-    showToast(`Created Block ${nextBlockNum}`);
-  };
+    const globalMatch = dbBlocks.find(
+      (b) =>
+        b.blockNumber === def.blockNumber &&
+        (!b.portfolioModeId || b.portfolioModeId === "")
+    );
 
-  const handleMoveBlock = (index: number, direction: "up" | "down") => {
-    if (direction === "up" && index === 0) return;
-    if (direction === "down" && index === displayedBlocks.length - 1) return;
+    const existingBlock = modeMatch || globalMatch;
 
-    const targetIndex = direction === "up" ? index - 1 : index + 1;
-    const updated = [...displayedBlocks];
+    if (existingBlock) {
+      return {
+        def,
+        block: {
+          ...existingBlock,
+          blockNumber: def.blockNumber,
+          type: def.type,
+        },
+      };
+    }
 
-    const temp = updated[index];
-    updated[index] = updated[targetIndex];
-    updated[targetIndex] = temp;
+    // Default fallback block if not created in DB yet
+    const fallbackBlock: PortfolioBlockData = {
+      id: `virtual-blk-${def.blockNumber}`,
+      sectionId: aboutSection?.id || "about-sec",
+      blockNumber: def.blockNumber,
+      type: def.type,
+      label: def.defaultLabel,
+      heading: def.defaultHeading,
+      subheading: "",
+      description: def.defaultDescription,
+      ctaText: def.defaultCtaText || null,
+      ctaUrl: def.defaultCtaUrl || null,
+      ctaVisible: !!def.defaultCtaText,
+      visible: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      items: [],
+    };
 
-    const reindexed = updated.map((b, idx) => ({
-      ...b,
-      blockNumber: idx + 1,
-    }));
-
-    reorderBlocks(sectionKey, reindexed);
-    showToast("Reordered blocks");
-  };
+    return { def, block: fallbackBlock };
+  });
 
   return (
     <div className="space-y-8 pb-16 min-h-screen">
@@ -141,10 +183,10 @@ export default function AdminAboutCMSPage() {
               About Me CMS
             </p>
             <h1 className="text-xl font-mono font-bold text-zinc-50 flex items-center gap-2 mt-1">
-              <FiLayout className="text-zinc-300 h-5 w-5" /> Visual Content Blocks (`PortfolioSection: ABOUT`)
+              <FiLayout className="text-zinc-300 h-5 w-5" /> Fixed 7-Block Content Management
             </h1>
             <p className="text-xs text-zinc-400 mt-1">
-              Manage dynamic visual blocks, spatial positioning (`blockNumber`), items, CTAs, and persona-specific bio content.
+              The 7-block spatial layout (Blocks 1–6 horizontal left-to-right, Block 7 vertical panel) is fixed. Customize the inside content of each block below.
             </p>
           </div>
 
@@ -162,7 +204,7 @@ export default function AdminAboutCMSPage() {
               <FiLayers className="text-zinc-400 h-4 w-4" />
               <span>Persona View Control</span>
               <span className="text-[10px] bg-white/10 text-zinc-200 px-2.5 py-0.5 rounded-full font-normal border border-white/10">
-                Active: {activeMode?.mode_name}
+                Active: {activeMode?.mode_name || "Default"}
               </span>
             </div>
 
@@ -210,123 +252,67 @@ export default function AdminAboutCMSPage() {
         </div>
       </div>
 
-      {/* Quick Add Block Bar */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-4">
-        <h2 className="text-xs font-mono uppercase tracking-wider text-zinc-400 font-semibold flex items-center gap-2">
-          <FiPlus className="text-indigo-400" /> Create New Visual Content Block
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 items-end">
-          <div>
-            <label className="block text-[11px] font-mono text-zinc-500 mb-1">Structural Type</label>
-            <select
-              value={newBlockType}
-              onChange={(e) => setNewBlockType(e.target.value as PortfolioBlockType)}
-              className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-zinc-100 focus:border-indigo-500 focus:outline-none"
-            >
-              {BLOCK_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-[11px] font-mono text-zinc-500 mb-1">Target Persona</label>
-            <select
-              value={newBlockPersona}
-              onChange={(e) => setNewBlockPersona(e.target.value)}
-              className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-zinc-100 focus:border-indigo-500 focus:outline-none"
-            >
-              <option value="GLOBAL">Global (All Personas)</option>
-              {modes.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.mode_name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-[11px] font-mono text-zinc-500 mb-1">Label (Eyebrow)</label>
-            <input
-              type="text"
-              placeholder="e.g. FOCUS"
-              value={newBlockLabel}
-              onChange={(e) => setNewBlockLabel(e.target.value)}
-              className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-[11px] font-mono text-zinc-500 mb-1">Heading</label>
-            <input
-              type="text"
-              placeholder="e.g. AI Systems"
-              value={newBlockHeading}
-              onChange={(e) => setNewBlockHeading(e.target.value)}
-              className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <button
-              onClick={handleCreateBlock}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-sm transition"
-            >
-              <FiPlus /> Add Block
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Blocks List */}
+      {/* 7 Fixed Blocks List */}
       <div className="space-y-6">
-        {displayedBlocks.length === 0 ? (
-          <div className="text-center p-12 border border-dashed border-zinc-800 rounded-2xl text-zinc-500 space-y-2">
-            <p className="text-sm">No blocks found for this persona selection.</p>
-            <p className="text-xs">Create a new block above or change the persona view filter.</p>
-          </div>
-        ) : (
-          displayedBlocks.map((block, idx) => (
-            <BlockEditorCard
-              key={block.id}
-              block={block}
-              index={idx}
-              totalBlocks={displayedBlocks.length}
-              modes={modes}
-              sectionKey={sectionKey}
-              isEditing={editingBlockId === block.id}
-              onToggleEdit={() =>
-                setEditingBlockId(editingBlockId === block.id ? null : block.id)
-              }
-              onMoveUp={() => handleMoveBlock(idx, "up")}
-              onMoveDown={() => handleMoveBlock(idx, "down")}
-              onDelete={() => {
-                if (confirm(`Delete Block ${block.blockNumber}?`)) {
-                  deleteBlock(sectionKey, block.id);
-                  showToast(`Deleted Block ${block.blockNumber}`);
-                }
-              }}
-              onUpdate={(data) => {
+        {fixedBlocksToDisplay.map(({ def, block }) => (
+          <BlockEditorCard
+            key={def.blockNumber}
+            block={block}
+            positionLabel={def.positionLabel}
+            modes={modes}
+            sectionKey={sectionKey}
+            isEditing={editingBlockNumber === def.blockNumber}
+            onToggleEdit={() =>
+              setEditingBlockNumber(
+                editingBlockNumber === def.blockNumber ? null : def.blockNumber
+              )
+            }
+            onSaveBlock={(data) => {
+              if (block.id && !block.id.startsWith("virtual-blk-")) {
                 updateBlock(sectionKey, block.id, data);
-                showToast(`Saved Block ${block.blockNumber}`);
-              }}
-              onAddItem={(item) => {
+              } else {
+                addBlock(sectionKey, {
+                  blockNumber: def.blockNumber,
+                  type: def.type,
+                  portfolioModeId: data.portfolioModeId || null,
+                  visible: data.visible ?? true,
+                  label: data.label || null,
+                  heading: data.heading || null,
+                  subheading: data.subheading || null,
+                  description: data.description || null,
+                  imageUrl: data.imageUrl || null,
+                  imageAlt: data.imageAlt || null,
+                  ctaText: data.ctaText || null,
+                  ctaUrl: data.ctaUrl || null,
+                  ctaType: data.ctaType || "LINK",
+                  ctaVisible: data.ctaVisible ?? false,
+                  items: [],
+                });
+              }
+              showToast(`Saved ${def.positionLabel}`);
+            }}
+            onAddItem={(item) => {
+              if (block.id && !block.id.startsWith("virtual-blk-")) {
                 addBlockItem(sectionKey, block.id, item);
                 showToast("Added item");
-              }}
-              onUpdateItem={(itemId, item) => {
+              } else {
+                alert("Please save block content first before adding sub-items.");
+              }
+            }}
+            onUpdateItem={(itemId, item) => {
+              if (block.id) {
                 updateBlockItem(sectionKey, block.id, itemId, item);
                 showToast("Updated item");
-              }}
-              onDeleteItem={(itemId) => {
+              }
+            }}
+            onDeleteItem={(itemId) => {
+              if (block.id) {
                 deleteBlockItem(sectionKey, block.id, itemId);
                 showToast("Removed item");
-              }}
-            />
-          ))
-        )}
+              }
+            }}
+          />
+        ))}
       </div>
     </div>
   );
@@ -334,16 +320,12 @@ export default function AdminAboutCMSPage() {
 
 interface BlockEditorCardProps {
   block: PortfolioBlockData;
-  index: number;
-  totalBlocks: number;
+  positionLabel: string;
   modes: { id: string; mode_name: string }[];
   sectionKey: string;
   isEditing: boolean;
   onToggleEdit: () => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-  onDelete: () => void;
-  onUpdate: (data: Partial<PortfolioBlockData>) => void;
+  onSaveBlock: (data: Partial<PortfolioBlockData>) => void;
   onAddItem: (
     item: Omit<PortfolioBlockItemData, "id" | "blockId" | "createdAt" | "updatedAt">
   ) => void;
@@ -353,15 +335,11 @@ interface BlockEditorCardProps {
 
 function BlockEditorCard({
   block,
-  index,
-  totalBlocks,
+  positionLabel,
   modes,
   isEditing,
   onToggleEdit,
-  onMoveUp,
-  onMoveDown,
-  onDelete,
-  onUpdate,
+  onSaveBlock,
   onAddItem,
   onDeleteItem,
 }: BlockEditorCardProps) {
@@ -369,7 +347,6 @@ function BlockEditorCard({
   const [heading, setHeading] = useState(block.heading || "");
   const [subheading, setSubheading] = useState(block.subheading || "");
   const [description, setDescription] = useState(block.description || "");
-  const [type, setType] = useState<PortfolioBlockType>(block.type);
   const [personaId, setPersonaId] = useState<string>(block.portfolioModeId || "GLOBAL");
   const [visible, setVisible] = useState(block.visible);
 
@@ -385,12 +362,11 @@ function BlockEditorCard({
   const [newItemUrl, setNewItemUrl] = useState("");
 
   const handleSave = () => {
-    onUpdate({
+    onSaveBlock({
       label: label || null,
       heading: heading || null,
       subheading: subheading || null,
       description: description || null,
-      type,
       portfolioModeId: personaId === "GLOBAL" ? null : personaId,
       visible,
       ctaText: ctaText || null,
@@ -426,90 +402,53 @@ function BlockEditorCard({
     >
       <div className="flex items-center justify-between p-4 border-b border-zinc-800/60">
         <div className="flex flex-wrap items-center gap-2.5">
-          <span className="font-mono text-xs px-2.5 py-1 rounded-lg bg-zinc-800 text-zinc-300 border border-zinc-700/60">
-            Block {block.blockNumber}
+          <span className="font-mono text-xs px-3 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-semibold">
+            {positionLabel}
           </span>
-          <span className="text-xs font-mono font-semibold uppercase px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+          <span className="text-xs font-mono uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700/60">
             {block.type}
           </span>
           <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-zinc-800/80 text-zinc-400 border border-zinc-700/40">
             {currentPersonaName}
           </span>
           <span className="text-sm font-medium text-zinc-200">
-            {block.label ? block.label : "Untitled"} —{" "}
-            <span className="text-zinc-400 font-normal">{block.heading || "No Heading"}</span>
+            {label ? label : "Untitled"} —{" "}
+            <span className="text-zinc-400 font-normal">{heading || "No Heading"}</span>
           </span>
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
           <button
-            disabled={index === 0}
-            onClick={onMoveUp}
-            className="p-1.5 text-zinc-400 hover:text-white disabled:opacity-30 rounded-lg hover:bg-zinc-800"
-            title="Move Up"
-          >
-            <FiArrowUp className="h-4 w-4" />
-          </button>
-          <button
-            disabled={index === totalBlocks - 1}
-            onClick={onMoveDown}
-            className="p-1.5 text-zinc-400 hover:text-white disabled:opacity-30 rounded-lg hover:bg-zinc-800"
-            title="Move Down"
-          >
-            <FiArrowDown className="h-4 w-4" />
-          </button>
-
-          <button
+            type="button"
             onClick={() => {
               const nextVis = !visible;
               setVisible(nextVis);
-              onUpdate({ visible: nextVis });
+              onSaveBlock({ visible: nextVis });
             }}
             className={`p-1.5 rounded-lg transition ${
               visible ? "text-emerald-400 hover:bg-emerald-500/10" : "text-zinc-500 hover:bg-zinc-800"
             }`}
+            title={visible ? "Visible" : "Hidden"}
           >
             {visible ? <FiEye className="h-4 w-4" /> : <FiEyeOff className="h-4 w-4" />}
           </button>
 
           <button
+            type="button"
             onClick={onToggleEdit}
-            className={`p-1.5 rounded-lg transition ${
-              isEditing ? "bg-indigo-600 text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+            className={`px-3 py-1.5 rounded-lg transition text-xs font-mono font-medium flex items-center gap-1.5 ${
+              isEditing ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-200 hover:bg-zinc-700"
             }`}
           >
-            <FiEdit3 className="h-4 w-4" />
-          </button>
-
-          <button
-            onClick={onDelete}
-            className="p-1.5 text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition"
-          >
-            <FiTrash2 className="h-4 w-4" />
+            <FiEdit3 className="h-3.5 w-3.5" />
+            {isEditing ? "Close Editor" : "Edit Content"}
           </button>
         </div>
       </div>
 
       {isEditing && (
         <div className="p-5 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-[11px] font-mono uppercase text-zinc-400 mb-1">
-                Structural Type
-              </label>
-              <select
-                value={type}
-                onChange={(e) => setType(e.target.value as PortfolioBlockType)}
-                className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3.5 py-2 text-xs text-zinc-100 focus:border-indigo-500 focus:outline-none"
-              >
-                {BLOCK_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-[11px] font-mono uppercase text-zinc-400 mb-1">
                 Assigned Persona Mode
@@ -583,45 +522,54 @@ function BlockEditorCard({
             </div>
           </div>
 
-          <div className="border-t border-zinc-800/60 pt-4 space-y-3">
-            <span className="block text-xs font-mono uppercase text-zinc-400 font-semibold flex items-center gap-2">
-              <FiLink /> Call To Action (CTA)
-            </span>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <input
-                type="text"
-                placeholder="CTA Button Label"
-                value={ctaText}
-                onChange={(e) => setCtaText(e.target.value)}
-                className="rounded-xl border border-zinc-800 bg-zinc-900 px-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
-              />
-              <input
-                type="text"
-                placeholder="CTA URL"
-                value={ctaUrl}
-                onChange={(e) => setCtaUrl(e.target.value)}
-                className="rounded-xl border border-zinc-800 bg-zinc-900 px-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
-              />
-              <label className="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer">
+          {block.type !== "HERO" && (
+            <div className="border-t border-zinc-800/60 pt-4 space-y-3">
+              <span className="block text-xs font-mono uppercase text-zinc-400 font-semibold flex items-center gap-2">
+                <FiLink /> Call To Action (CTA)
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <input
-                  type="checkbox"
-                  checked={ctaVisible}
-                  onChange={(e) => setCtaVisible(e.target.checked)}
-                  className="rounded border-zinc-800 text-indigo-600 focus:ring-0"
+                  type="text"
+                  placeholder="CTA Button Label"
+                  value={ctaText}
+                  onChange={(e) => setCtaText(e.target.value)}
+                  className="rounded-xl border border-zinc-800 bg-zinc-900 px-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
                 />
-                Show CTA Button
-              </label>
+                <input
+                  type="text"
+                  placeholder="CTA URL"
+                  value={ctaUrl}
+                  onChange={(e) => setCtaUrl(e.target.value)}
+                  className="rounded-xl border border-zinc-800 bg-zinc-900 px-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
+                />
+                <label className="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={ctaVisible}
+                    onChange={(e) => setCtaVisible(e.target.checked)}
+                    className="rounded border-zinc-800 text-indigo-600 focus:ring-0"
+                  />
+                  Show CTA Button
+                </label>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="border-t border-zinc-800/60 pt-4 space-y-3">
             <span className="block text-xs font-mono uppercase text-zinc-400 font-semibold flex items-center gap-2">
-              <FiImage /> Media Reference
+              <FiImage /> Media Reference & Cloudflare R2 Upload
             </span>
+            <FileUploader
+              label="Upload Block Image to Cloudflare R2"
+              defaultFolder="about"
+              acceptedTypes="image"
+              currentUrl={imageUrl}
+              onUploadSuccess={(url) => setImageUrl(url)}
+            />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <input
                 type="text"
-                placeholder="Image URL"
+                placeholder="Or paste Image URL directly"
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
                 className="rounded-xl border border-zinc-800 bg-zinc-900 px-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
@@ -638,7 +586,7 @@ function BlockEditorCard({
 
           <div className="border-t border-zinc-800/60 pt-4 space-y-3">
             <span className="block text-xs font-mono uppercase text-zinc-400 font-semibold flex items-center gap-2">
-              <FiList /> Block Items
+              <FiList /> Sub-Items (Bullets, Links, Text lines)
             </span>
 
             {block.items && block.items.length > 0 && (
@@ -656,6 +604,7 @@ function BlockEditorCard({
                     </div>
 
                     <button
+                      type="button"
                       onClick={() => onDeleteItem(item.id)}
                       className="p-1 text-zinc-500 hover:text-rose-400 rounded"
                     >
@@ -701,7 +650,7 @@ function BlockEditorCard({
               onClick={handleSave}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-sm transition"
             >
-              <FiSave className="h-4 w-4" /> Save Block {block.blockNumber} Changes
+              <FiSave className="h-4 w-4" /> Save {positionLabel} Content
             </button>
           </div>
         </div>

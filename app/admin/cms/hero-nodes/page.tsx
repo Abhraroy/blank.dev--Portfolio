@@ -20,6 +20,8 @@ import {
   FiType,
 } from "react-icons/fi";
 
+import { FileUploader } from "../../_components/FileUploader";
+
 export default function CMSHeroNodesPage() {
   const {
     heroNodesCMS,
@@ -32,6 +34,21 @@ export default function CMSHeroNodesPage() {
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+
+  // Center Node Local Form State
+  const [centerLabel, setCenterLabel] = useState(heroNodesCMS?.centerNodeLabel || "blankdev");
+  const [centerLogoUrl, setCenterLogoUrl] = useState(heroNodesCMS?.centerLogoUrl || "");
+  const [centerSavedMsg, setCenterSavedMsg] = useState(false);
+
+  const handleSaveCenterNode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await updateHeroNodesCMS({
+      centerNodeLabel: centerLabel,
+      centerLogoUrl: centerLogoUrl || null,
+    });
+    setCenterSavedMsg(true);
+    setTimeout(() => setCenterSavedMsg(false), 2500);
+  };
 
   // New Node Form State
   const [newNode, setNewNode] = useState<{
@@ -185,6 +202,80 @@ export default function CMSHeroNodesPage() {
             {showAddForm ? "Cancel" : "Add New Skill Node"}
           </button>
         </div>
+      </div>
+
+      {/* Center Brand Node Settings Card */}
+      <div className="rounded-2xl border border-white/10 bg-zinc-950/40 backdrop-blur-xl p-6 space-y-4 shadow-[0_0_12px_rgba(255,255,255,0.06)]">
+        <div className="flex items-center justify-between border-b border-white/10 pb-3">
+          <h2 className="text-xs font-mono font-bold uppercase tracking-[0.2em] text-zinc-200 flex items-center gap-2">
+            <FiSliders className="text-indigo-400" /> Center Brand Node Settings
+          </h2>
+          {centerSavedMsg && (
+            <span className="font-mono text-xs text-emerald-400 flex items-center gap-1">
+              <FiCheck /> Center Node Saved!
+            </span>
+          )}
+        </div>
+
+        <form onSubmit={handleSaveCenterNode} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-400 mb-1">
+                Center Node Text Label
+              </label>
+              <input
+                type="text"
+                value={centerLabel}
+                onChange={(e) => setCenterLabel(e.target.value)}
+                placeholder="e.g. blankdev"
+                className="w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-2 text-xs font-mono text-zinc-100 focus:border-white/30 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-400 mb-1">
+                Center Node Logo URL (SVG / Image)
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={centerLogoUrl}
+                  onChange={(e) => setCenterLogoUrl(e.target.value)}
+                  placeholder="https://... or /logo.svg"
+                  className="flex-1 rounded-xl border border-white/10 bg-zinc-950 px-3 py-2 text-xs font-mono text-zinc-100 focus:border-white/30 focus:outline-none"
+                />
+                {centerLogoUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setCenterLogoUrl("")}
+                    className="p-2 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-400 text-xs hover:bg-rose-500/20"
+                    title="Clear Logo"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* R2 / Local Image File Uploader */}
+          <FileUploader
+            label="Upload Center Node Logo Image (SVG, PNG, WebP, JPG)"
+            acceptedTypes="image"
+            defaultFolder="hero-center"
+            currentUrl={centerLogoUrl}
+            onUploadSuccess={(url) => setCenterLogoUrl(url)}
+          />
+
+          <div className="flex justify-end pt-2">
+            <button
+              type="submit"
+              className="rounded-xl border border-white/20 bg-white/15 px-5 py-2 text-xs font-mono font-medium text-white hover:bg-white/25 flex items-center gap-1.5"
+            >
+              <FiCheck /> Save Center Node Settings
+            </button>
+          </div>
+        </form>
       </div>
 
       {/* Add New Node Form */}

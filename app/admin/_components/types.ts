@@ -54,8 +54,11 @@ export interface Project {
   project_name: string;
   slug: string;
   project_image?: string | null;
+  project_images?: string[];
+  project_videos?: string[];
   project_url?: string | null;
   project_github?: string | null;
+  project_md_url?: string | null;
   project_tags: string[];
   project_tech: string[];
   project_status: ProjectStatus;
@@ -108,6 +111,7 @@ export interface MyDetails {
   id: string;
   full_name: string;
   profile_image?: string | null;
+  resume_url?: string | null;
   email: string;
   github_url?: string | null;
   linkedin_url?: string | null;
@@ -335,6 +339,8 @@ export interface HeroNodeCMSItemData {
 export interface HeroNodeCMSData {
   id: string;
   key: string;
+  centerNodeLabel?: string | null;
+  centerLogoUrl?: string | null;
   visible: boolean;
   items: HeroNodeCMSItemData[];
   createdAt?: string;

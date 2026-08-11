@@ -31,7 +31,52 @@ export default function ProjectShowcase() {
 
   const dynamicProjects: ShowcaseProject[] = useMemo(() => {
     if (!projectShowcaseCMS || !projectShowcaseCMS.items || projectShowcaseCMS.items.length === 0) {
-      return FALLBACK_SHOWCASE_PROJECTS;
+      if (projects.length > 0) {
+        return projects.map((proj, idx) => {
+          const modeContent = proj.modeContents?.[0];
+          return {
+            id: proj.id,
+            slug: proj.slug,
+            number: (idx + 1).toString().padStart(2, "0"),
+            name: proj.project_name || "Placeholder",
+            oneLiner: modeContent?.project_description || proj.project_name || "Placeholder",
+            techStack: proj.project_tech && proj.project_tech.length > 0 ? proj.project_tech : ["Placeholder"],
+            metrics: (modeContent?.project_highlights || []).map((h) => ({ label: h })),
+            challenge: modeContent?.project_description || "Placeholder",
+            solution: `Built with ${proj.project_tech?.join(", ") || "Placeholder"}.`,
+            impact: `Active ${proj.project_status || "Placeholder"} project.`,
+            technicalHighlights: modeContent?.project_highlights || ["Placeholder"],
+          };
+        });
+      }
+      return [
+        {
+          id: "ph-showcase-1",
+          slug: "placeholder-showcase-1",
+          number: "01",
+          name: "Placeholder",
+          oneLiner: "Placeholder",
+          techStack: ["Placeholder"],
+          metrics: [{ label: "Placeholder" }],
+          challenge: "Placeholder",
+          solution: "Placeholder",
+          impact: "Placeholder",
+          technicalHighlights: ["Placeholder"],
+        },
+        {
+          id: "ph-showcase-2",
+          slug: "placeholder-showcase-2",
+          number: "02",
+          name: "Placeholder",
+          oneLiner: "Placeholder",
+          techStack: ["Placeholder"],
+          metrics: [{ label: "Placeholder" }],
+          challenge: "Placeholder",
+          solution: "Placeholder",
+          impact: "Placeholder",
+          technicalHighlights: ["Placeholder"],
+        },
+      ];
     }
 
     const activeItems = [...projectShowcaseCMS.items]
@@ -53,14 +98,14 @@ export default function ProjectShowcase() {
           id: item.id,
           slug: `showcase-${idx + 1}`,
           number: formattedNum,
-          name: "Showcase System",
-          oneLiner: "Interactive software architecture.",
-          techStack: ["Next.js", "TypeScript", "PostgreSQL"],
-          metrics: highlights.length > 0 ? highlights : [{ label: "High Speed" }],
-          challenge: "Scale & interactive UX.",
-          solution: "Prisma PostgreSQL & modern Next.js engine.",
-          impact: "Shipped for production users.",
-          technicalHighlights: ["Sub-50ms render", "Strict type safety"],
+          name: "Placeholder",
+          oneLiner: "Placeholder",
+          techStack: ["Placeholder"],
+          metrics: highlights.length > 0 ? highlights : [{ label: "Placeholder" }],
+          challenge: "Placeholder",
+          solution: "Placeholder",
+          impact: "Placeholder",
+          technicalHighlights: ["Placeholder"],
         };
       }
 
@@ -68,22 +113,22 @@ export default function ProjectShowcase() {
         id: proj.id,
         slug: proj.slug,
         number: formattedNum,
-        name: proj.project_name,
-        oneLiner: modeContent?.project_description || `${proj.project_name} production platform.`,
-        techStack: proj.project_tech && proj.project_tech.length > 0 ? proj.project_tech : ["Next.js", "TypeScript", "PostgreSQL"],
+        name: proj.project_name || "Placeholder",
+        oneLiner: modeContent?.project_description || proj.project_name || "Placeholder",
+        techStack: proj.project_tech && proj.project_tech.length > 0 ? proj.project_tech : ["Placeholder"],
         metrics: highlights.length > 0
           ? highlights
-          : (modeContent?.project_highlights || ["REVENUE PLATFORM"]).map((h) => ({ label: h })),
-        challenge: modeContent?.project_description || "Scalable web platform.",
-        solution: `Built with ${proj.project_tech.join(", ")}.`,
-        impact: `Active ${proj.project_status.toLowerCase()} project.`,
+          : (modeContent?.project_highlights || ["Placeholder"]).map((h) => ({ label: h })),
+        challenge: modeContent?.project_description || "Placeholder",
+        solution: `Built with ${proj.project_tech?.join(", ") || "Placeholder"}.`,
+        impact: `Active ${proj.project_status || "Placeholder"} project.`,
         technicalHighlights: modeContent?.project_highlights && modeContent.project_highlights.length > 0
           ? modeContent.project_highlights
-          : ["Production grade", "TypeScript architecture"],
+          : ["Placeholder"],
       };
     });
 
-    return derived.length > 0 ? derived : FALLBACK_SHOWCASE_PROJECTS;
+    return derived;
   }, [projects, projectHighlights, projectShowcaseCMS]);
 
   const onOpen = useCallback((project: ShowcaseProject) => {
