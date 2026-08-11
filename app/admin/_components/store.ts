@@ -22,6 +22,7 @@ import {
   ProjectShowcaseSectionCMSItemData,
   HeroNodeCMSData,
   HeroNodeCMSItemData,
+  MobileHeroSkillData,
 } from "./types";
 import { SKILL_CATALOG } from "@/components/NewHeroSection/config/nodes.data";
 
@@ -118,6 +119,7 @@ interface AdminState {
   selectedWorkCMS: SelectedWorkSectionCMSData;
   projectShowcaseCMS: ProjectShowcaseSectionCMSData;
   heroNodesCMS: HeroNodeCMSData;
+  mobileHeroSkills: MobileHeroSkillData[];
 
   // Factual Metric Actions
   addExperienceMetric: (metric: Omit<ExperienceMetricData, "id" | "createdAt" | "updatedAt">) => void;
@@ -161,6 +163,12 @@ interface AdminState {
   updateHeroNodeCMSItem: (id: string, item: Partial<HeroNodeCMSItemData>) => void;
   deleteHeroNodeCMSItem: (id: string) => void;
   reorderHeroNodeCMSItems: (items: HeroNodeCMSItemData[]) => void;
+
+  // Mobile Hero Section CMS Actions
+  addMobileHeroSkill: (skill: Omit<MobileHeroSkillData, "id" | "createdAt" | "updatedAt">) => Promise<void>;
+  updateMobileHeroSkill: (id: string, skill: Partial<MobileHeroSkillData>) => Promise<void>;
+  deleteMobileHeroSkill: (id: string) => Promise<void>;
+  reorderMobileHeroSkills: (items: MobileHeroSkillData[]) => Promise<void>;
 }
 
 const defaultModes: PortfolioMode[] = [];
@@ -235,6 +243,7 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
   selectedWorkCMS: defaultSelectedWorkCMS,
   projectShowcaseCMS: defaultProjectShowcaseCMS,
   heroNodesCMS: defaultHeroNodesCMS,
+  mobileHeroSkills: [],
 
   fetchInitialData: async () => {
     set({ isLoading: true });
@@ -252,6 +261,7 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
           selectedWorkCMS: data.selectedWorkCMS || defaultSelectedWorkCMS,
           projectShowcaseCMS: data.projectShowcaseCMS || defaultProjectShowcaseCMS,
           heroNodesCMS: data.heroNodesCMS || defaultHeroNodesCMS,
+          mobileHeroSkills: data.mobileHeroSkills || [],
           activeModeId: data.modes?.length ? data.modes[0].id : "",
         });
       }
@@ -1074,6 +1084,67 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
       }
     } catch (e) {
       console.error("reorderHeroNodeCMSItems error:", e);
+    }
+  },
+
+  addMobileHeroSkill: async (skill) => {
+    try {
+      const res = await fetch("/api/admin/cms/mobile-hero", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(skill),
+      });
+      if (res.ok) {
+        const newItem = await res.json();
+        set((state) => ({
+          mobileHeroSkills: [...state.mobileHeroSkills, newItem],
+        }));
+      }
+    } catch (e) {
+      console.error("addMobileHeroSkill error:", e);
+    }
+  },
+
+  updateMobileHeroSkill: async (id, skill) => {
+    set((state) => ({
+      mobileHeroSkills: state.mobileHeroSkills.map((s) =>
+        s.id === id ? { ...s, ...skill } : s
+      ),
+    }));
+    try {
+      await fetch("/api/admin/cms/mobile-hero", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, ...skill }),
+      });
+    } catch (e) {
+      console.error("updateMobileHeroSkill error:", e);
+    }
+  },
+
+  deleteMobileHeroSkill: async (id) => {
+    set((state) => ({
+      mobileHeroSkills: state.mobileHeroSkills.filter((s) => s.id !== id),
+    }));
+    try {
+      await fetch(`/api/admin/cms/mobile-hero?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+    } catch (e) {
+      console.error("deleteMobileHeroSkill error:", e);
+    }
+  },
+
+  reorderMobileHeroSkills: async (items) => {
+    set({ mobileHeroSkills: items });
+    try {
+      await fetch("/api/admin/cms/mobile-hero", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "REORDER", items }),
+      });
+    } catch (e) {
+      console.error("reorderMobileHeroSkills error:", e);
     }
   },
 }));

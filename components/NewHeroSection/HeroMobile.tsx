@@ -4,19 +4,21 @@ import Link from "next/link";
 import { HERO_MOBILE } from "./config/hero.mobile.config";
 import { useSkillTypewriter } from "./hooks/useSkillTypewriter";
 import { useAdminStore } from "@/app/admin/_components/store";
+import { trackContactInterested } from "@/lib/track";
 
 /**
  * Lightweight mobile hero: status badge, name, typewriter, tagline, socials, CTAs.
  * Replaces the R3F network sphere below the tablet breakpoint.
  */
 export default function HeroMobile() {
-  const { details, heroNodesCMS } = useAdminStore();
+  const { details, mobileHeroSkills } = useAdminStore();
 
-  const cmsSkillLabels = heroNodesCMS?.items
-    ?.filter((i) => i.visible)
-    .map((i) => i.label) || [];
+  const cmsSkillLabels = mobileHeroSkills
+    ?.filter((s) => s.visible)
+    .map((s) => s.text) || [];
 
-  const skillList = cmsSkillLabels.length > 0 ? cmsSkillLabels : ["Placeholder"];
+  const skillList =
+    cmsSkillLabels.length > 0 ? cmsSkillLabels : [...HERO_MOBILE.skills];
 
   const { displayText, announcedSkill } = useSkillTypewriter({
     skills: skillList,
@@ -94,6 +96,7 @@ export default function HeroMobile() {
                 href={href}
                 target={href.startsWith("mailto:") ? undefined : "_blank"}
                 rel="noreferrer noopener"
+                onClick={() => trackContactInterested()}
                 className="transition hover:text-zinc-100"
               >
                 {handle}
@@ -109,6 +112,7 @@ export default function HeroMobile() {
             key={cta.href}
             href={cta.href}
             onClick={(e) => {
+              trackContactInterested();
               if (cta.href.includes("#")) {
                 const hash = cta.href.split("#")[1];
                 if (window.location.pathname === "/" || cta.href.startsWith("#")) {

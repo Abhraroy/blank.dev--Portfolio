@@ -549,4 +549,20 @@ model ProjectInteraction {
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
+// ---------------------------------------------------------------------------
+// Mobile View Hero Section CMS Model (String records)
+// ---------------------------------------------------------------------------
+
+model MobileHeroSkill {
+  id           String   @id @default(uuid())
+  text         String
+  displayOrder Int      @default(0)
+  visible      Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([displayOrder])
+}
+
+
 

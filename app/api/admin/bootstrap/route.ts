@@ -13,6 +13,7 @@ export async function GET() {
       selectedWorkCMS,
       projectShowcaseCMS,
       heroNodesCMS,
+      mobileHeroSkills,
     ] = await Promise.all([
       prisma.portfolioMode.findMany({ orderBy: { createdAt: "asc" } }),
       prisma.myDetails.findFirst({ include: { modeContents: true } }),
@@ -52,6 +53,9 @@ export async function GET() {
       prisma.heroSectionCMS.findFirst({
         include: { items: { orderBy: { displayOrder: "asc" } } },
       }),
+      prisma.mobileHeroSkill.findMany({
+        orderBy: { displayOrder: "asc" },
+      }),
     ]);
 
     return NextResponse.json({
@@ -64,6 +68,7 @@ export async function GET() {
       selectedWorkCMS,
       projectShowcaseCMS,
       heroNodesCMS,
+      mobileHeroSkills,
     });
   } catch (error: any) {
     console.error("GET /api/admin/bootstrap error:", error);

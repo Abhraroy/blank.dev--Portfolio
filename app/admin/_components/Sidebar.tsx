@@ -13,6 +13,7 @@ import {
   FiTerminal,
   FiLayout,
   FiSliders,
+  FiSmartphone,
 } from "react-icons/fi";
 
 const domainNavItems = [
@@ -48,6 +49,11 @@ const cmsNavItems = [
     name: "CMS Management Hub",
     href: "/admin/cms",
     icon: FiSliders,
+  },
+  {
+    name: "Mobile Hero CMS",
+    href: "/admin/cms/mobile-hero",
+    icon: FiSmartphone,
   },
   {
     name: "Hero Nodes CMS",

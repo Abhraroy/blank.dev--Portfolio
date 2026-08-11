@@ -34,6 +34,10 @@ const titleMap: Record<string, { title: string; subtitle: string }> = {
     title: "Hero 3D Network Nodes CMS Section",
     subtitle: "Manage 3D skill nodes, popup card titles, descriptions, tech tags, CTAs, display sequence, and visibility",
   },
+  "/admin/cms/mobile-hero": {
+    title: "Mobile View Hero Skills CMS Section",
+    subtitle: "Manage typewriter skill strings, display sequence, and visibility for mobile hero view",
+  },
   "/admin/cms/about": {
     title: "About Me CMS Section",
     subtitle: "Manage dynamic visual blocks (Blocks 1..7), items, CTAs, and profile bios",

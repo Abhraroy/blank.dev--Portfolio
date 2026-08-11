@@ -347,4 +347,14 @@ export interface HeroNodeCMSData {
   updatedAt?: string;
 }
 
+export interface MobileHeroSkillData {
+  id: string;
+  text: string;
+  displayOrder: number;
+  visible: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+
 

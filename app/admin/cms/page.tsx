@@ -11,16 +11,26 @@ import {
   FiChevronRight,
   FiSliders as FiCms,
   FiLayers,
+  FiSmartphone,
 } from "react-icons/fi";
 
 export default function CMSHubPage() {
-  const { sections, experienceCMS, selectedWorkCMS, projectShowcaseCMS, heroNodesCMS, activeModeId, modes } = useAdminStore();
+  const { sections, experienceCMS, selectedWorkCMS, projectShowcaseCMS, heroNodesCMS, mobileHeroSkills, activeModeId, modes } = useAdminStore();
 
   const aboutSection = sections.find((s) => s.key === "ABOUT");
   const aboutBlocksCount = aboutSection?.blocks?.length || 0;
   const activeMode = modes.find((m) => m.id === activeModeId)?.mode_name || "Default";
 
   const cmsSections = [
+    {
+      id: "mobile-hero",
+      name: "Mobile View Hero Skills CMS",
+      description: "Manage typewriter skill string records, display sequence, and visibility for the mobile view hero section.",
+      href: "/admin/cms/mobile-hero",
+      icon: FiSmartphone,
+      badgeText: `${mobileHeroSkills?.length || 0} Skill Records`,
+      visible: true,
+    },
     {
       id: "hero-nodes",
       name: "Hero 3D Network Nodes CMS",
