@@ -2,6 +2,7 @@ import React from "react";
 import { Sidebar } from "./_components/Sidebar";
 import { Header } from "./_components/Header";
 import { AdminInitializer } from "./_components/AdminInitializer";
+import { AdminToastContainer } from "./_components/AdminToastContainer";
 
 export const metadata = {
   title: "Admin Studio - Portfolio Data Control",
@@ -16,6 +17,7 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex font-sans selection:bg-zinc-800 selection:text-white">
       <AdminInitializer />
+      <AdminToastContainer />
       {/* Sidebar navigation */}
       <Sidebar />
 

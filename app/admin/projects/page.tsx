@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { toast } from "react-toastify";
 import { useAdminStore } from "../_components/store";
 import {
   Project,
@@ -207,6 +208,11 @@ export default function ProjectsFactsPage() {
       });
     }
 
+    toast.success(
+      editingProject
+        ? `Project "${projectName.trim()}" updated successfully!`
+        : `Project "${projectName.trim()}" created successfully!`
+    );
     setIsModalOpen(false);
   };
 
@@ -219,6 +225,7 @@ export default function ProjectsFactsPage() {
       order: existing.length + 1,
       visible: true,
     });
+    toast.success("Added project feature badge!");
     setNewHlContent("");
     setNewHlProjectId("");
   };
@@ -347,7 +354,10 @@ export default function ProjectsFactsPage() {
                       <FiEdit2 className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={() => deleteProject(project.id)}
+                      onClick={() => {
+                        deleteProject(project.id);
+                        toast.success(`Deleted project "${project.project_name}"`);
+                      }}
                       className="p-1.5 rounded-lg hover:bg-rose-500/20 text-zinc-400 hover:text-rose-400 transition-colors"
                       title="Delete Project"
                     >
@@ -383,7 +393,10 @@ export default function ProjectsFactsPage() {
                       >
                         {h.content}
                         <button
-                          onClick={() => deleteProjectHighlight(h.id)}
+                          onClick={() => {
+                            deleteProjectHighlight(h.id);
+                            toast.success("Removed project feature badge!");
+                          }}
                           className="text-zinc-500 hover:text-rose-400 ml-1"
                         >
                           <FiX className="h-3 w-3" />

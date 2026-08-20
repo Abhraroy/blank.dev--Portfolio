@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { toast as reactToast } from "react-toastify";
 import { useAdminStore } from "../../_components/store";
 import { FileUploader } from "../../_components/FileUploader";
 import {
@@ -118,6 +119,7 @@ export default function AdminAboutCMSPage() {
 
   const showToast = (msg: string) => {
     setToast(msg);
+    reactToast.success(msg);
     setTimeout(() => setToast(null), 2500);
   };
 
@@ -212,8 +214,14 @@ export default function AdminAboutCMSPage() {
               <FiFilter className="text-zinc-400 h-3.5 w-3.5" />
               <select
                 value={filterMode}
-                onChange={(e) => setFilterMode(e.target.value)}
-                className="bg-zinc-950 border border-white/10 text-zinc-200 text-xs font-mono rounded-xl px-3 py-1.5 focus:outline-none focus:border-white/30"
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setFilterMode(val);
+                  if (val !== "ALL" && val !== "ACTIVE_PERSONA") {
+                    setActiveModeId(val);
+                  }
+                }}
+                className="bg-zinc-950 border border-white/10 text-zinc-200 text-xs font-mono rounded-xl px-3 py-1.5 focus:outline-none focus:border-white/30 cursor-pointer"
               >
                 <option value="ACTIVE_PERSONA">View Active Persona + Global</option>
                 <option value="ALL">Show All Blocks (Unfiltered)</option>
@@ -232,7 +240,11 @@ export default function AdminAboutCMSPage() {
               return (
                 <button
                   key={mode.id}
-                  onClick={() => setActiveModeId(mode.id)}
+                  type="button"
+                  onClick={() => {
+                    setActiveModeId(mode.id);
+                    setFilterMode("ACTIVE_PERSONA");
+                  }}
                   className={`px-3.5 py-2 rounded-xl text-xs font-mono whitespace-nowrap transition-all flex items-center gap-2 border ${
                     isSelected
                       ? "bg-white/15 text-zinc-50 border-white/30 shadow-sm font-semibold"
@@ -256,7 +268,7 @@ export default function AdminAboutCMSPage() {
       <div className="space-y-6">
         {fixedBlocksToDisplay.map(({ def, block }) => (
           <BlockEditorCard
-            key={def.blockNumber}
+            key={`${def.blockNumber}-${block.id || "virtual"}-${block.portfolioModeId || activeModeId || "global"}`}
             block={block}
             positionLabel={def.positionLabel}
             modes={modes}
@@ -268,25 +280,34 @@ export default function AdminAboutCMSPage() {
               )
             }
             onSaveBlock={(data) => {
-              if (block.id && !block.id.startsWith("virtual-blk-")) {
+              const targetModeId =
+                data.portfolioModeId !== undefined
+                  ? data.portfolioModeId
+                  : block.portfolioModeId || null;
+              const isExistingBlockForSameMode =
+                block.id &&
+                !block.id.startsWith("virtual-blk-") &&
+                (block.portfolioModeId || null) === targetModeId;
+
+              if (isExistingBlockForSameMode) {
                 updateBlock(sectionKey, block.id, data);
               } else {
                 addBlock(sectionKey, {
                   blockNumber: def.blockNumber,
                   type: def.type,
-                  portfolioModeId: data.portfolioModeId || null,
-                  visible: data.visible ?? true,
-                  label: data.label || null,
-                  heading: data.heading || null,
-                  subheading: data.subheading || null,
-                  description: data.description || null,
-                  imageUrl: data.imageUrl || null,
-                  imageAlt: data.imageAlt || null,
-                  ctaText: data.ctaText || null,
-                  ctaUrl: data.ctaUrl || null,
+                  portfolioModeId: targetModeId,
+                  visible: data.visible ?? block.visible ?? true,
+                  label: data.label !== undefined ? data.label : block.label || null,
+                  heading: data.heading !== undefined ? data.heading : block.heading || null,
+                  subheading: data.subheading !== undefined ? data.subheading : block.subheading || null,
+                  description: data.description !== undefined ? data.description : block.description || null,
+                  imageUrl: data.imageUrl !== undefined ? data.imageUrl : block.imageUrl || null,
+                  imageAlt: data.imageAlt !== undefined ? data.imageAlt : block.imageAlt || null,
+                  ctaText: data.ctaText !== undefined ? data.ctaText : block.ctaText || null,
+                  ctaUrl: data.ctaUrl !== undefined ? data.ctaUrl : block.ctaUrl || null,
                   ctaType: data.ctaType || "LINK",
-                  ctaVisible: data.ctaVisible ?? false,
-                  items: [],
+                  ctaVisible: data.ctaVisible !== undefined ? data.ctaVisible : block.ctaVisible ?? false,
+                  items: block.items || [],
                 });
               }
               showToast(`Saved ${def.positionLabel}`);
@@ -296,7 +317,7 @@ export default function AdminAboutCMSPage() {
                 addBlockItem(sectionKey, block.id, item);
                 showToast("Added item");
               } else {
-                alert("Please save block content first before adding sub-items.");
+                reactToast.warning("Please save block content first before adding sub-items.");
               }
             }}
             onUpdateItem={(itemId, item) => {
@@ -360,6 +381,36 @@ function BlockEditorCard({
   const [newItemType, setNewItemType] = useState<PortfolioBlockItemType>("TEXT");
   const [newItemContent, setNewItemContent] = useState("");
   const [newItemUrl, setNewItemUrl] = useState("");
+
+  React.useEffect(() => {
+    setLabel(block.label || "");
+    setHeading(block.heading || "");
+    setSubheading(block.subheading || "");
+    setDescription(block.description || "");
+    setPersonaId(block.portfolioModeId || "GLOBAL");
+    setVisible(block.visible);
+    setCtaText(block.ctaText || "");
+    setCtaUrl(block.ctaUrl || "");
+    setCtaVisible(block.ctaVisible ?? true);
+    setImageUrl(block.imageUrl || "");
+    setImageAlt(block.imageAlt || "");
+    setNewItemContent("");
+    setNewItemUrl("");
+    setNewItemType("TEXT");
+  }, [
+    block.id,
+    block.portfolioModeId,
+    block.label,
+    block.heading,
+    block.subheading,
+    block.description,
+    block.visible,
+    block.ctaText,
+    block.ctaUrl,
+    block.ctaVisible,
+    block.imageUrl,
+    block.imageAlt,
+  ]);
 
   const handleSave = () => {
     onSaveBlock({

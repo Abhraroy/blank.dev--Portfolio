@@ -10,6 +10,7 @@ import {
   FiCopy,
   FiLoader,
 } from "react-icons/fi";
+import { toast } from "react-toastify";
 
 interface FileUploaderProps {
   onUploadSuccess?: (url: string, key: string, filename: string) => void;
@@ -53,6 +54,7 @@ export function FileUploader({
 
     setIsUploading(true);
     setError(null);
+    toast.info(`Uploading ${files.length} file(s) to Cloudflare R2...`);
 
     const uploadedUrls: string[] = [];
 
@@ -83,8 +85,11 @@ export function FileUploader({
       if (multiple && onMultiUploadSuccess && uploadedUrls.length > 0) {
         onMultiUploadSuccess(uploadedUrls);
       }
+      toast.success("Successfully uploaded file(s) to Cloudflare R2!");
     } catch (err: any) {
-      setError(err.message || "Failed to upload file(s)");
+      const errMsg = err.message || "Failed to upload file(s)";
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setIsUploading(false);
     }
@@ -94,6 +99,7 @@ export function FileUploader({
     if (uploadedUrl) {
       navigator.clipboard.writeText(uploadedUrl);
       setCopied(true);
+      toast.info("Copied R2 URL to clipboard!");
       setTimeout(() => setCopied(false), 2000);
     }
   };

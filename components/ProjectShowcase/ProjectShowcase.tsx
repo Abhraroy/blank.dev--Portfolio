@@ -27,13 +27,15 @@ export default function ProjectShowcase() {
   const trackRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState<ShowcaseProject | null>(null);
 
-  const { projects, projectHighlights, projectShowcaseCMS } = useAdminStore();
+  const { projects, projectHighlights, projectShowcaseCMS, activeModeId } = useAdminStore();
 
   const dynamicProjects: ShowcaseProject[] = useMemo(() => {
     if (!projectShowcaseCMS || !projectShowcaseCMS.items || projectShowcaseCMS.items.length === 0) {
       if (projects.length > 0) {
         return projects.map((proj, idx) => {
-          const modeContent = proj.modeContents?.[0];
+          const modeContent =
+            proj.modeContents?.find((m) => m.portfolioModeId === activeModeId) ||
+            proj.modeContents?.[0];
           return {
             id: proj.id,
             slug: proj.slug,
@@ -42,9 +44,9 @@ export default function ProjectShowcase() {
             oneLiner: modeContent?.project_description || proj.project_name || "Placeholder",
             techStack: proj.project_tech && proj.project_tech.length > 0 ? proj.project_tech : ["Placeholder"],
             metrics: (modeContent?.project_highlights || []).map((h) => ({ label: h })),
-            challenge: modeContent?.project_description || "Placeholder",
-            solution: `Built with ${proj.project_tech?.join(", ") || "Placeholder"}.`,
-            impact: `Active ${proj.project_status || "Placeholder"} project.`,
+            challenge: modeContent?.challenge || modeContent?.project_description || "Placeholder",
+            solution: modeContent?.solution || `Built with ${proj.project_tech?.join(", ") || "Placeholder"}.`,
+            impact: modeContent?.impact || `Active ${proj.project_status || "Placeholder"} project.`,
             technicalHighlights: modeContent?.project_highlights || ["Placeholder"],
           };
         });
@@ -91,7 +93,9 @@ export default function ProjectShowcase() {
         .map((h) => ({ label: h.content }));
 
       const formattedNum = (idx + 1).toString().padStart(2, "0");
-      const modeContent = proj?.modeContents?.[0];
+      const modeContent =
+        proj?.modeContents?.find((m) => m.portfolioModeId === activeModeId) ||
+        proj?.modeContents?.[0];
 
       if (!proj) {
         return {
@@ -119,9 +123,9 @@ export default function ProjectShowcase() {
         metrics: highlights.length > 0
           ? highlights
           : (modeContent?.project_highlights || ["Placeholder"]).map((h) => ({ label: h })),
-        challenge: modeContent?.project_description || "Placeholder",
-        solution: `Built with ${proj.project_tech?.join(", ") || "Placeholder"}.`,
-        impact: `Active ${proj.project_status || "Placeholder"} project.`,
+        challenge: modeContent?.challenge || modeContent?.project_description || "Placeholder",
+        solution: modeContent?.solution || `Built with ${proj.project_tech?.join(", ") || "Placeholder"}.`,
+        impact: modeContent?.impact || `Active ${proj.project_status || "Placeholder"} project.`,
         technicalHighlights: modeContent?.project_highlights && modeContent.project_highlights.length > 0
           ? modeContent.project_highlights
           : ["Placeholder"],
@@ -129,7 +133,7 @@ export default function ProjectShowcase() {
     });
 
     return derived;
-  }, [projects, projectHighlights, projectShowcaseCMS]);
+  }, [projects, projectHighlights, projectShowcaseCMS, activeModeId]);
 
   const onOpen = useCallback((project: ShowcaseProject) => {
     setActive(project);

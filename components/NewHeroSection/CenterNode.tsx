@@ -1,6 +1,6 @@
 "use client";
 
-import { GradientTexture, Text, useTexture } from "@react-three/drei";
+import { GradientTexture, GradientType, Text, useTexture } from "@react-three/drei";
 import { useMemo, Suspense } from "react";
 import * as THREE from "three";
 import { CENTER_NODE } from "./config/nodes.data";
@@ -23,7 +23,7 @@ function CenterLogo({ url, size }: { url: string; size: number }) {
   return (
     <mesh position={[0, 0, size * 1.01]} scale={size * 1.2} frustumCulled>
       <planeGeometry args={[1, 1]} />
-      <meshBasicMaterial map={texture} transparent toneMapped={false} side={THREE.DoubleSide} />
+      <meshBasicMaterial map={texture} transparent toneMapped={false} side={THREE.DoubleSide} depthWrite={false} />
     </mesh>
   );
 }
@@ -33,11 +33,17 @@ function CenterLogo({ url, size }: { url: string; size: number }) {
  * Gradient MeshStandard sphere + Troika brand text (no Html / backdrop-blur).
  */
 export default function CenterNode({ size }: CenterNodeProps) {
+
   const geometry = useMemo(() => getCenterGeometry(), []);
   const { center } = MATERIALS;
   const heroNodesCMS = useAdminStore((s) => s.heroNodesCMS);
   const centerLabel = heroNodesCMS?.centerNodeLabel || "Placeholder";
-  const centerLogo = heroNodesCMS?.centerLogoUrl || null;
+  const rawLogoUrl = heroNodesCMS?.centerLogoUrl || CENTER_NODE.logoUrl;
+  const centerLogo = rawLogoUrl
+    ? rawLogoUrl.startsWith("/") || rawLogoUrl.startsWith("http") || rawLogoUrl.startsWith("data:")
+      ? rawLogoUrl
+      : `/${rawLogoUrl}`
+    : null;
 
   return (
     <group>
@@ -58,18 +64,20 @@ export default function CenterNode({ size }: CenterNodeProps) {
           opacity={center.opacity}
         >
           <GradientTexture
+            type={("type" in center.gradient && (center.gradient as any).type === "radial") ? GradientType.Radial : GradientType.Linear}
             stops={[...center.gradient.stops]}
             colors={[...center.gradient.colors]}
-            size={256}
+            size={512}
           />
         </meshStandardMaterial>
       </mesh>
-      {centerLogo ? (
+      {/* Logo image plane on center node — commented out as requested */}
+      {/* {centerLogo ? (
         <Suspense fallback={null}>
           <CenterLogo url={centerLogo} size={size} />
         </Suspense>
-      ) : null}
-      <Text
+      ) : null} */}
+      {/* <Text
         position={[0, -size * 1.35, 0]}
         fontSize={Math.max(0.18, size * 0.28)}
         color="#f4f4f5"
@@ -81,7 +89,7 @@ export default function CenterNode({ size }: CenterNodeProps) {
         textAlign="center"
       >
         {centerLabel}
-      </Text>
+      </Text> */}
     </group>
   );
 }

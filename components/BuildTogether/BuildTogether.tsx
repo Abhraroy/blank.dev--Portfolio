@@ -41,7 +41,32 @@ export default function BuildTogether() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
 
-  const contactEmail = details?.email || "Placeholder";
+  const contactEmail = details?.email || "";
+
+  const formatLocationLabel = () => {
+    if (!details) return "Remote · Worldwide";
+    if (details.location) return details.location;
+    const parts = [
+      details.address,
+      details.district,
+      details.state,
+      details.country,
+      details.pin_code ? `PIN: ${details.pin_code}` : null,
+    ].filter(Boolean);
+    if (parts.length > 0) {
+      return parts.join(", ");
+    }
+    return "Remote · Worldwide";
+  };
+
+  const dynamicBadges = [
+    { id: "available", label: "Available for work" },
+    {
+      id: "location",
+      label: formatLocationLabel(),
+    },
+    { id: "response", label: "Replies within 24h" },
+  ];
 
   const socialChannels = [
     { id: "github", label: "GitHub", href: details?.github_url, Icon: FaGithub },
@@ -49,7 +74,7 @@ export default function BuildTogether() {
     { id: "x", label: "X (Twitter)", href: details?.x_url, Icon: FaXTwitter },
     { id: "instagram", label: "Instagram", href: details?.instagram_url, Icon: FaInstagram },
     { id: "discord", label: "Discord", href: details?.discord_url, Icon: FaDiscord },
-    { id: "email", label: "Email", href: contactEmail !== "Placeholder" ? `mailto:${contactEmail}` : undefined, Icon: FaEnvelope },
+    { id: "email", label: "Email", href: contactEmail ? `mailto:${contactEmail}` : undefined, Icon: FaEnvelope },
   ].filter((s): s is { id: string; label: string; href: string; Icon: typeof FaGithub } => Boolean(s.href));
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -67,11 +92,11 @@ export default function BuildTogether() {
   return (
     <section
       id="contact"
-      className="relative w-full scroll-mt-24 overflow-hidden bg-zinc-950 px-4 py-16 sm:px-6 sm:py-20 md:px-8 lg:px-12 lg:py-28"
+      className="relative w-full scroll-mt-24 overflow-hidden bg-transparent px-4 py-16 sm:px-6 sm:py-20 md:px-8 lg:px-12 lg:py-28"
       aria-labelledby="contact-heading"
     >
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_30%,rgba(63,63,70,0.3)_0%,transparent_60%)]"
+        className="pointer-events-none absolute inset-0 "
         aria-hidden
       />
 
@@ -109,7 +134,7 @@ export default function BuildTogether() {
           variants={fadeUp}
           aria-label="Availability"
         >
-          {CONTACT_BADGES.map((badge) => (
+          {dynamicBadges.map((badge) => (
             <li
               key={badge.id}
               className="flex items-center gap-1.5 rounded-full border border-white/12 bg-white/5 px-3 py-1.5 font-mono text-[10px] tracking-[0.16em] text-zinc-300 uppercase backdrop-blur-sm"

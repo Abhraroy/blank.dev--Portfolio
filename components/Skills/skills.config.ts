@@ -116,3 +116,17 @@ export const SKILLS: Skill[] = SKILL_TRACK_CONFIG.map((entry) => ({
   name: entry.name,
   Icon: ICON_MAP[entry.iconName] || LuCode,
 }));
+
+export function resolveSkillIcon(nameOrIcon?: string): IconType {
+  if (!nameOrIcon) return LuCode;
+  if (ICON_MAP[nameOrIcon]) return ICON_MAP[nameOrIcon];
+  const clean = nameOrIcon.toLowerCase().replace(/[^a-z0-9]/g, "");
+  for (const [key, icon] of Object.entries(ICON_MAP)) {
+    const keyClean = key.toLowerCase().replace(/^si|^fa|^tb|^lu/, "");
+    if (keyClean && (clean.includes(keyClean) || keyClean.includes(clean))) {
+      return icon;
+    }
+  }
+  return LuCode;
+}
+

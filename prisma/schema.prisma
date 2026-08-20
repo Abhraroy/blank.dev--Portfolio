@@ -126,6 +126,9 @@ model ProjectModeContent {
   projectId            String
   portfolioModeId      String
   project_description  String?
+  challenge            String?
+  solution             String?
+  impact               String?
   project_highlights   String[]
   project_user_count   Int?
   project_revenue      Int?
@@ -204,6 +207,11 @@ model MyDetails {
   discord_url         String?
   website_url         String?
   location            String?
+  address             String?
+  district            String?
+  state               String?
+  country             String?
+  pin_code            String?
   years_of_experience Int?     @default(4)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt

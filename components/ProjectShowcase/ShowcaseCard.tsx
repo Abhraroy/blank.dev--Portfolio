@@ -45,7 +45,7 @@ export default function ShowcaseCard({ project, onOpen }: ShowcaseCardProps) {
           </div>
 
           <div className="flex flex-wrap gap-1.5">
-            {project.techStack.slice(0, 4).map((tech) => (
+            {project.techStack.map((tech) => (
               <span
                 key={tech}
                 className="rounded-full border border-white/10 bg-white/5 px-3 py-1 font-mono text-xs text-zinc-300"

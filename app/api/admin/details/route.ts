@@ -29,6 +29,19 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     const { id, modeContent, ...detailsData } = body;
 
+    if (!detailsData.location) {
+      const parts = [
+        detailsData.address,
+        detailsData.district,
+        detailsData.state,
+        detailsData.country,
+        detailsData.pin_code ? `PIN: ${detailsData.pin_code}` : null,
+      ].filter(Boolean);
+      if (parts.length > 0) {
+        detailsData.location = parts.join(", ");
+      }
+    }
+
     let details = await prisma.myDetails.findFirst();
 
     if (!details) {

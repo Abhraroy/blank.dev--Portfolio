@@ -18,18 +18,32 @@ export const ROTATION = {
  */
 export const MATERIALS = {
   center: {
-    /** Fallback / emissive base when gradient map is applied. */
-    color: "#e4e4e7",
-    emissive: "#d4d4d8",
-    emissiveIntensity: 0.55,
-    metalness: 0.28,
-    roughness: 0.22,
-    opacity: 0.92,
-    /** Radial gradient stops for the center sphere (drei GradientTexture). */
+    // Bright white core
+    color: "#ffffff",
+
+    // Emissive base glow (keep intensity low so gradient map is visible)
+    emissive: "#52525b",
+    emissiveIntensity: 0.2,
+
+    // Slightly metallic but mostly smooth
+    metalness: 0.15,
+    roughness: 0.12,
+
+    opacity: 1,
+
+    // Bright radial gradient
     gradient: {
-      stops: [0, 0.4, 1] as const,
-      colors: ["#fafafa", "#a1a1aa", "#3f3f46"] as const,
-    },
+  stops: [0, 0.16, 0.32, 0.48, 0.64, 0.8, 1] as const,
+  colors: [
+    "#ffffff", // center
+    "#ff3bff", // magenta / pink
+    "#7b5cff", // violet
+    "#3b82ff", // blue
+    "#00e5ff", // cyan
+    "#00ff8a", // green
+    "#fff94d", // yellow
+  ] as const,
+},
   },
   skill: {
     color: "#a1a1aa",

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useAdminStore } from "../../_components/store";
+import { toast } from "react-toastify";
 import {
   FiSmartphone,
   FiPlus,
@@ -50,6 +51,7 @@ export default function CMSMobileHeroPage() {
       displayOrder: sortedSkills.length,
       visible: true,
     });
+    toast.success(`Added mobile hero skill "${newSkillText.trim()}"!`);
     setNewSkillText("");
     setIsSubmitting(false);
   };
@@ -62,6 +64,7 @@ export default function CMSMobileHeroPage() {
   const handleSaveEdit = async (id: string) => {
     if (!editingText.trim()) return;
     await updateMobileHeroSkill(id, { text: editingText.trim() });
+    toast.success("Updated mobile hero skill!");
     setEditingId(null);
     setEditingText("");
   };
@@ -82,6 +85,7 @@ export default function CMSMobileHeroPage() {
     }));
 
     await reorderMobileHeroSkills(updated);
+    toast.success("Reordered mobile hero skills!");
   };
 
   return (
@@ -227,11 +231,12 @@ export default function CMSMobileHeroPage() {
 
                       {/* Visibility Toggle */}
                       <button
-                        onClick={() =>
+                        onClick={() => {
                           updateMobileHeroSkill(skill.id, {
                             visible: !skill.visible,
-                          })
-                        }
+                          });
+                          toast.success(skill.visible ? "Hidden skill from typewriter" : "Showed skill in typewriter");
+                        }}
                         className={`p-1.5 rounded-lg border transition-all ${
                           skill.visible
                             ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
@@ -257,7 +262,10 @@ export default function CMSMobileHeroPage() {
 
                       {/* Delete Button */}
                       <button
-                        onClick={() => deleteMobileHeroSkill(skill.id)}
+                        onClick={() => {
+                          deleteMobileHeroSkill(skill.id);
+                          toast.success(`Deleted skill "${skill.text}"`);
+                        }}
                         className="p-1.5 rounded-lg border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all"
                         title="Delete Skill Record"
                       >

@@ -121,14 +121,61 @@ const DEFAULT_BLOCKS: PortfolioBlockData[] = [
 ];
 
 export default function AboutMe() {
-  const { sections, activeModeId } = useAdminStore();
+  const { sections, activeModeId, details } = useAdminStore();
 
   const aboutSection = sections.find((s) => s.key === "ABOUT" && s.visible);
   const dbBlocks = aboutSection?.blocks || [];
 
+  const modeContent = details?.modeContents?.find(
+    (m) => m.portfolioModeId === activeModeId
+  ) || details?.modeContents?.[0];
+
+  const dynamicDefaultBlocks: PortfolioBlockData[] = DEFAULT_BLOCKS.map((b) => {
+    if (b.blockNumber === 1) {
+      return {
+        ...b,
+        heading: modeContent?.headline || b.heading,
+        description: modeContent?.detailed_bio || modeContent?.short_bio || b.description,
+      };
+    }
+    if (b.blockNumber === 3 && details?.years_of_experience) {
+      return {
+        ...b,
+        heading: `${details.years_of_experience}+ yrs`,
+      };
+    }
+    if (
+      b.blockNumber === 5 &&
+      (details?.location || details?.district || details?.state || details?.country || details?.address)
+    ) {
+      const locHeading =
+        details.location ||
+        [details.district, details.state, details.country].filter(Boolean).join(", ") ||
+        b.heading;
+      return {
+        ...b,
+        heading: locHeading,
+      };
+    }
+    if (b.blockNumber === 7 && details?.full_name) {
+      const initials = details.full_name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
+      return {
+        ...b,
+        heading: initials || b.heading,
+        imageUrl: details.profile_image || b.imageUrl,
+      };
+    }
+    return b;
+  });
+
   // Build fixed 7 blocks: merge DB content for each blockNumber (1..7) over default layout definition
   const finalBlocks = [1, 2, 3, 4, 5, 6, 7].map((num) => {
-    const defaultBlk = DEFAULT_BLOCKS.find((b) => b.blockNumber === num)!;
+    const defaultBlk = dynamicDefaultBlocks.find((b) => b.blockNumber === num)!;
 
     // Match persona-specific block first, then global unassigned block
     const modeMatch = dbBlocks.find(

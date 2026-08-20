@@ -4,23 +4,34 @@ import { motion } from "framer-motion";
 import {
   useVisitorModeStore,
   VISITOR_MODES,
-  type VisitorMode,
+  type VisitorMode as VisitorModeType,
 } from "@/zustand";
+import { useAdminStore } from "@/app/admin/_components/store";
 
-const MODE_LABELS: Record<VisitorMode, string> = {
+const DEFAULT_MODE_LABELS: Record<string, string> = {
   explorer: "Explorer",
   builder: "Builder",
   business: "Business",
 };
 
-/**
- * Responsive visitor-mode switcher below the hero.
- * Transparent shell, bordered frame, subtle option animations.
- */
 export default function VisitorMode() {
   const mode = useVisitorModeStore((s) => s.mode);
   const setMode = useVisitorModeStore((s) => s.setMode);
   const setSwitching = useVisitorModeStore((s) => s.setSwitching);
+  const { modes, activeModeId, setActiveModeId } = useAdminStore();
+
+  const options =
+    modes && modes.length > 0
+      ? modes.map((m) => ({
+          key: m.id,
+          name: m.mode_name,
+          modeType: m.mode_name.toLowerCase(),
+        }))
+      : VISITOR_MODES.map((vm) => ({
+          key: vm,
+          name: DEFAULT_MODE_LABELS[vm] || vm,
+          modeType: vm,
+        }));
 
   return (
     <section
@@ -32,16 +43,29 @@ export default function VisitorMode() {
         role="tablist"
         aria-label="Choose visitor mode"
       >
-        {VISITOR_MODES.map((option, index) => {
-          const selected = mode === option;
+        {options.map((opt, index) => {
+          const selected =
+            activeModeId === opt.key ||
+            mode === opt.modeType ||
+            (index === 0 && !activeModeId);
 
           return (
             <motion.button
-              key={option}
+              key={opt.key}
               type="button"
               role="tab"
               aria-selected={selected}
-              onClick={() => setMode(option)}
+              onClick={() => {
+                setMode(opt.modeType as VisitorModeType);
+                if (opt.key && opt.key !== opt.modeType) {
+                  setActiveModeId(opt.key);
+                } else if (modes.length > 0) {
+                  const match = modes.find(
+                    (m) => m.mode_name.toLowerCase() === opt.modeType
+                  );
+                  if (match) setActiveModeId(match.id);
+                }
+              }}
               onAnimationComplete={() => {
                 if (selected) setSwitching(false);
               }}
@@ -76,7 +100,7 @@ export default function VisitorMode() {
                   }}
                 />
               )}
-              <span className="relative z-10">{MODE_LABELS[option]}</span>
+              <span className="relative z-10">{opt.name}</span>
             </motion.button>
           );
         })}

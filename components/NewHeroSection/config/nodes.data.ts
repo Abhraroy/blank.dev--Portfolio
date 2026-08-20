@@ -6,7 +6,8 @@ import type { CenterNodeData, SkillNodeData } from "../types/network";
  */
 export const CENTER_NODE: CenterNodeData = {
   id: "center",
-  label: "Placeholder",
+  // label: "Placeholder",
+  logoUrl: "/download.svg",
 };
 
 /**

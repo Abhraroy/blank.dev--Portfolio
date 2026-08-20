@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FiDownload } from "react-icons/fi";
 import { NAV_BRAND, NAV_LINKS } from "./nav.config";
+import { useAdminStore } from "@/app/admin/_components/store";
 
 const navShell =
   "mx-auto flex h-16 max-w-7xl items-center justify-between border border-white/10 bg-white/10 px-4 backdrop-blur-xl sm:px-6";
@@ -53,9 +54,11 @@ const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) =>
 function MobileNav({
   open,
   setOpen,
+  brandName,
 }: {
   open: boolean;
   setOpen: (value: boolean | ((prev: boolean) => boolean)) => void;
+  brandName: string;
 }) {
   return (
     <div className="w-full">
@@ -68,7 +71,7 @@ function MobileNav({
           className={brandClass}
           onClick={() => setOpen(false)}
         >
-          {NAV_BRAND.label}
+          {brandName}
         </Link>
 
         <div className="flex items-center gap-2">
@@ -131,14 +134,14 @@ function MobileNav({
   );
 }
 
-function TabletNav() {
+function TabletNav({ brandName }: { brandName: string }) {
   return (
     <nav
       className={`${navShell} w-full rounded-full`}
       aria-label="Primary tablet"
     >
       <Link href={NAV_BRAND.href} className={brandClass}>
-        {NAV_BRAND.label}
+        {brandName}
       </Link>
 
       <div className="flex items-center gap-5">
@@ -161,14 +164,14 @@ function TabletNav() {
   );
 }
 
-function DesktopNav() {
+function DesktopNav({ brandName }: { brandName: string }) {
   return (
     <nav
       className={`${navShell} w-full rounded-full`}
       aria-label="Primary desktop"
     >
       <Link href={NAV_BRAND.href} className={brandClass}>
-        {NAV_BRAND.label}
+        {brandName}
       </Link>
 
       <div className="flex items-center gap-8">
@@ -198,6 +201,8 @@ export default function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [tier, setTier] = useState<NavTier>("desktop");
+  const { details } = useAdminStore();
+  const brandName = details?.full_name || NAV_BRAND.label;
 
   if (pathname?.startsWith("/admin")) {
     return null;
@@ -240,11 +245,11 @@ export default function Navbar() {
     <header className="fixed inset-x-0 top-0 z-50">
       <div className="flex h-fit w-full items-center justify-center p-6">
         {tier === "mobile" ? (
-          <MobileNav open={open} setOpen={setOpen} />
+          <MobileNav open={open} setOpen={setOpen} brandName={brandName} />
         ) : tier === "tablet" ? (
-          <TabletNav />
+          <TabletNav brandName={brandName} />
         ) : (
-          <DesktopNav />
+          <DesktopNav brandName={brandName} />
         )}
       </div>
     </header>

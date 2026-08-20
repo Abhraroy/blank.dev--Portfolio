@@ -185,6 +185,11 @@ const defaultDetails: MyDetails = {
   discord_url: null,
   website_url: null,
   location: null,
+  address: null,
+  district: null,
+  state: null,
+  country: null,
+  pin_code: null,
   years_of_experience: null,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
@@ -824,32 +829,80 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
     }
   },
 
-  addSelectedWorkCMSItem: (itemData) =>
+  addSelectedWorkCMSItem: async (itemData) => {
+    const newItem = {
+      ...itemData,
+      id: `swcmsi-${Date.now()}`,
+      sectionId: get().selectedWorkCMS?.id || "sw-cms-main",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const updatedItems = [...(get().selectedWorkCMS?.items || []), newItem];
     set((state) => ({
       selectedWorkCMS: {
         ...state.selectedWorkCMS,
-        items: [
-          ...state.selectedWorkCMS.items,
-          { ...itemData, id: `swcmsi-${Date.now()}`, sectionId: state.selectedWorkCMS.id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        ],
+        items: updatedItems,
       },
-    })),
+    }));
+    try {
+      const res = await fetch("/api/admin/cms/composition", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sectionType: "SELECTED_WORK", items: updatedItems }),
+      });
+      if (res.ok) {
+        await get().fetchInitialData();
+      }
+    } catch (e) {
+      console.error("addSelectedWorkCMSItem error:", e);
+    }
+  },
 
-  updateSelectedWorkCMSItem: (id, itemData) =>
+  updateSelectedWorkCMSItem: async (id, itemData) => {
+    const updatedItems = (get().selectedWorkCMS?.items || []).map((i) =>
+      i.id === id ? { ...i, ...itemData } : i
+    );
     set((state) => ({
       selectedWorkCMS: {
         ...state.selectedWorkCMS,
-        items: state.selectedWorkCMS.items.map((i) => (i.id === id ? { ...i, ...itemData } : i)),
+        items: updatedItems,
       },
-    })),
+    }));
+    try {
+      const res = await fetch("/api/admin/cms/composition", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sectionType: "SELECTED_WORK", items: updatedItems }),
+      });
+      if (res.ok) {
+        await get().fetchInitialData();
+      }
+    } catch (e) {
+      console.error("updateSelectedWorkCMSItem error:", e);
+    }
+  },
 
-  deleteSelectedWorkCMSItem: (id) =>
+  deleteSelectedWorkCMSItem: async (id) => {
+    const updatedItems = (get().selectedWorkCMS?.items || []).filter((i) => i.id !== id);
     set((state) => ({
       selectedWorkCMS: {
         ...state.selectedWorkCMS,
-        items: state.selectedWorkCMS.items.filter((i) => i.id !== id),
+        items: updatedItems,
       },
-    })),
+    }));
+    try {
+      const res = await fetch("/api/admin/cms/composition", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sectionType: "SELECTED_WORK", items: updatedItems }),
+      });
+      if (res.ok) {
+        await get().fetchInitialData();
+      }
+    } catch (e) {
+      console.error("deleteSelectedWorkCMSItem error:", e);
+    }
+  },
 
   reorderSelectedWorkCMSItems: async (items) => {
     set((state) => ({

@@ -13,7 +13,7 @@ export default function Experience() {
   const pathFillRef = useRef<HTMLDivElement>(null);
   const isLg = useIsLg();
 
-  const { experiences, experienceMetrics, experienceAchievements, experienceCMS } = useAdminStore();
+  const { experiences, experienceMetrics, experienceAchievements, experienceCMS, activeModeId } = useAdminStore();
 
   // Derive dynamic milestones from ExperienceSectionCMS composition layer
   const milestones: ExperienceMilestoneType[] = useMemo(() => {
@@ -21,7 +21,9 @@ export default function Experience() {
       if (experiences.length > 0) {
         return experiences.map((exp) => {
           const yearStr = exp.start_date ? new Date(exp.start_date).getFullYear().toString() : "Placeholder";
-          const modeContent = exp.modeContents?.[0];
+          const modeContent =
+            exp.modeContents?.find((m) => m.portfolioModeId === activeModeId) ||
+            exp.modeContents?.[0];
           return {
             id: exp.id,
             year: yearStr,
@@ -80,7 +82,9 @@ export default function Experience() {
       }
 
       const yearStr = exp.start_date ? new Date(exp.start_date).getFullYear().toString() : "Placeholder";
-      const modeContent = exp.modeContents?.[0];
+      const modeContent =
+        exp.modeContents?.find((m) => m.portfolioModeId === activeModeId) ||
+        exp.modeContents?.[0];
 
       return {
         id: exp.id,
@@ -101,7 +105,7 @@ export default function Experience() {
     });
 
     return derived;
-  }, [experiences, experienceMetrics, experienceAchievements, experienceCMS]);
+  }, [experiences, experienceMetrics, experienceAchievements, experienceCMS, activeModeId]);
 
   const milestoneIds = useMemo(() => milestones.map((m) => m.id), [milestones]);
 

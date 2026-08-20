@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useAdminStore } from "../../_components/store";
+import { toast } from "react-toastify";
 import {
   FiSliders,
   FiArrowUp,
@@ -58,12 +59,14 @@ export default function CMSProjectShowcasePage() {
       displayOrder: idx + 1,
     }));
     reorderProjectShowcaseCMSItems(reindexed);
+    toast.success("Updated showcase track project sequence!");
   };
 
   const handleTogglePSProject = (projId: string) => {
     const existing = psCMSItems.find((i) => i.projectId === projId);
     if (existing) {
       deleteProjectShowcaseCMSItem(existing.id);
+      toast.success("Removed project from showcase track!");
     } else {
       addProjectShowcaseCMSItem({
         projectId: projId,
@@ -73,6 +76,7 @@ export default function CMSProjectShowcasePage() {
         showTechnologies: true,
         showViewAction: true,
       });
+      toast.success("Added project to showcase track!");
     }
   };
 
@@ -103,7 +107,7 @@ export default function CMSProjectShowcasePage() {
       project_github: editForm.project_github || null,
       project_url: editForm.project_url || null,
     });
-
+    toast.success(`Updated project "${editForm.project_name}"!`);
     setEditingProject(null);
   };
 

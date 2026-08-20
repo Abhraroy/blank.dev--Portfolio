@@ -160,13 +160,41 @@ export default function ProjectExpandModal({
   );
 }
 
+function parseBullets(text: string | null | undefined): string[] {
+  if (!text) return [];
+  const lines = text.split(/\r?\n|\|/);
+  const items = lines
+    .map((item) => item.trim().replace(/^[-*•\d+.]\s*/, ""))
+    .filter(Boolean);
+  return items;
+}
+
 function ModalBlock({ title, body }: { title: string; body: string }) {
+  const bulletItems = parseBullets(body);
+
   return (
     <div className="space-y-2">
       <p className="font-mono text-[10px] tracking-[0.22em] text-zinc-500 uppercase">
         {title}
       </p>
-      <p className="text-sm leading-relaxed text-zinc-300">{body}</p>
+      {bulletItems.length > 0 ? (
+        <ul className="space-y-2">
+          {bulletItems.map((item, index) => (
+            <li
+              key={index}
+              className="flex items-start gap-2.5 text-sm leading-relaxed text-zinc-300"
+            >
+              <span
+                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(99,102,241,0.8)]"
+                aria-hidden
+              />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm leading-relaxed text-zinc-300">{body}</p>
+      )}
     </div>
   );
 }

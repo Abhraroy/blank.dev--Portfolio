@@ -28,10 +28,14 @@ export default function HeroMobile() {
   const typeSlotWidth =
     Math.max(...skillList.map((skill) => skill.length)) + 1;
 
-  const fullName = details?.full_name || "Placeholder";
+  const fullName = details?.full_name || "blankdev";
   const nameParts = fullName.includes(" ") ? fullName.split(" ") : [fullName, ""];
-  const firstName = nameParts[0] || "Placeholder";
+  const firstName = nameParts[0] || "blankdev";
   const lastName = nameParts.slice(1).join(" ") || "";
+
+  const dbModeContent = details?.modeContents?.[0];
+  const dynamicTagline =
+    dbModeContent?.short_bio || dbModeContent?.headline || HERO_MOBILE.tagline;
 
   const mobileSocials = [
     { id: "github", handle: "github", href: details?.github_url },
@@ -81,7 +85,7 @@ export default function HeroMobile() {
         </p>
 
         <p className="max-w-xs text-sm leading-relaxed text-zinc-400">
-          {HERO_MOBILE.tagline}
+          {dynamicTagline}
         </p>
 
         <div className="flex flex-wrap items-center justify-center font-mono text-xs tracking-[0.06em] text-zinc-400">

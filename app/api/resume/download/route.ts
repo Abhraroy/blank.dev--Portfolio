@@ -49,7 +49,9 @@ export async function GET(req: NextRequest) {
     }
 
     // Try fetching via Cloudflare R2 S3 client first if it's an R2 URL or key
-    if (cleanUrlLower.includes("r2.cloudflarestorage.com") || !cleanUrl.startsWith("http")) {
+    const r2PublicDomain = (process.env.R2_PUBLIC_URL || process.env.CLOUDFLARE_R2_PUBLIC_DOMAIN || "").toLowerCase().replace(/^https?:\/\//, "");
+    const isCustomR2Domain = !!r2PublicDomain && cleanUrlLower.includes(r2PublicDomain);
+    if (cleanUrlLower.includes("r2.cloudflarestorage.com") || isCustomR2Domain || !cleanUrl.startsWith("http")) {
       try {
         const key = extractR2Key(details.resume_url, R2_BUCKET_NAME);
         const s3Response = await s3.send(

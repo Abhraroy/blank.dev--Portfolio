@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useAdminStore } from "../../_components/store";
+import { toast } from "react-toastify";
 import {
   FiBriefcase,
   FiArrowUp,
@@ -60,12 +61,14 @@ export default function CMSExperiencePage() {
     }));
 
     reorderExperienceCMSItems(reindexed);
+    toast.success("Updated milestone display sequence!");
   };
 
   const handleToggleCMSExperience = (expId: string) => {
     const existing = cmsItems.find((i) => i.experienceId === expId);
     if (existing) {
       deleteExperienceCMSItem(existing.id);
+      toast.success("Removed milestone from CMS sequence!");
     } else {
       addExperienceCMSItem({
         experienceId: expId,
@@ -80,6 +83,7 @@ export default function CMSExperiencePage() {
         showAchievements: true,
         showMetrics: true,
       });
+      toast.success("Added milestone to CMS sequence!");
     }
   };
 
@@ -101,11 +105,11 @@ export default function CMSExperiencePage() {
     updateExperience(editingExp.id, {
       role_title: expForm.role_title,
       company_name: expForm.company_name,
-      location: expForm.company_url || undefined,
+      location: expForm.company_url || null,
       start_date: expForm.start_date,
-      end_date: expForm.end_date || undefined,
+      end_date: expForm.end_date || null,
     });
-
+    toast.success("Updated milestone experience facts!");
     setEditingExp(null);
   };
 

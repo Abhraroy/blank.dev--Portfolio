@@ -22,13 +22,15 @@ const headerFade = {
 
 export default function SelectedWork() {
   const [active, setActive] = useState<SelectedProject | null>(null);
-  const { projects, projectHighlights, selectedWorkCMS } = useAdminStore();
+  const { projects, projectHighlights, selectedWorkCMS, activeModeId } = useAdminStore();
 
-  const dynamicProjects: SelectedProject[] = useMemo(() => {
-    if (!selectedWorkCMS || !selectedWorkCMS.items || selectedWorkCMS.items.length === 0) {
+  const dynamicProjects = useMemo<SelectedProject[]>(() => {
+    if (!selectedWorkCMS || selectedWorkCMS.items === undefined) {
       if (projects.length > 0) {
-        return projects.map((proj, idx) => {
-          const modeContent = proj.modeContents?.[0];
+        return projects.map((proj, idx): SelectedProject => {
+          const modeContent =
+            proj.modeContents?.find((m) => m.portfolioModeId === activeModeId) ||
+            proj.modeContents?.[0];
           return {
             id: proj.id,
             slug: proj.slug,
@@ -77,38 +79,27 @@ export default function SelectedWork() {
       ];
     }
 
-    const activeItems = [...selectedWorkCMS.items]
+    const activeItems = [...(selectedWorkCMS.items || [])]
       .filter((i) => i.visible)
       .sort((a, b) => a.displayOrder - b.displayOrder);
 
-    const derived = activeItems.map((item, idx) => {
+    const result: SelectedProject[] = [];
+
+    activeItems.forEach((item, idx) => {
       const proj = projects.find((p) => p.id === item.projectId);
+      if (!proj) return;
+
       const highlights = projectHighlights
         .filter((h) => h.projectId === item.projectId && h.visible)
         .sort((a, b) => a.order - b.order)
         .map((h) => ({ label: h.content }));
 
       const formattedNum = item.customNumber || (idx + 1).toString().padStart(2, "0");
-      const modeContent = proj?.modeContents?.[0];
+      const modeContent =
+        proj.modeContents?.find((m) => m.portfolioModeId === activeModeId) ||
+        proj.modeContents?.[0];
 
-      if (!proj) {
-        return {
-          id: item.id,
-          slug: `project-${idx + 1}`,
-          number: formattedNum,
-          name: "Placeholder",
-          oneLiner: "Placeholder",
-          techStack: ["Placeholder"],
-          metrics: highlights.length > 0 ? highlights : [{ label: "Placeholder" }],
-          challenge: "Placeholder",
-          solution: "Placeholder",
-          impact: "Placeholder",
-          technicalHighlights: ["Placeholder"],
-          offset: item.offset as "up" | "down" | undefined,
-        };
-      }
-
-      return {
+      result.push({
         id: proj.id,
         slug: proj.slug,
         number: formattedNum,
@@ -118,18 +109,18 @@ export default function SelectedWork() {
         metrics: highlights.length > 0
           ? highlights
           : (modeContent?.project_highlights || ["Placeholder"]).map((h) => ({ label: h })),
-        challenge: modeContent?.project_description || "Placeholder",
-        solution: `Built with ${proj.project_tech?.join(", ") || "Placeholder"}.`,
-        impact: `Active ${proj.project_status || "Placeholder"} product.`,
+        challenge: modeContent?.challenge || modeContent?.project_description || "No challenge statement configured.",
+        solution: modeContent?.solution || `Built with ${proj.project_tech?.join(", ") || "modern tech stack"}.`,
+        impact: modeContent?.impact || `Active ${proj.project_status || "production"} product.`,
         technicalHighlights: modeContent?.project_highlights && modeContent.project_highlights.length > 0
           ? modeContent.project_highlights
           : ["Placeholder"],
         offset: item.offset as "up" | "down" | undefined,
-      };
+      });
     });
 
-    return derived;
-  }, [projects, projectHighlights, selectedWorkCMS]);
+    return result;
+  }, [projects, projectHighlights, selectedWorkCMS, activeModeId]);
 
   const onOpen = useCallback((project: SelectedProject) => {
     setActive(project);

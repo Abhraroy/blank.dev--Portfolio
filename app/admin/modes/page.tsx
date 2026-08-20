@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useAdminStore } from "../_components/store";
 import { PortfolioMode } from "../_components/types";
+import { toast } from "react-toastify";
 import {
   FiLayers,
   FiPlus,
@@ -33,6 +34,7 @@ export default function ModesPage() {
       mode_name: modeName.trim(),
       mode_description: modeDesc.trim() || null,
     });
+    toast.success(`Created portfolio mode "${modeName.trim()}"!`);
     setModeName("");
     setModeDesc("");
     setIsCreating(false);
@@ -51,6 +53,7 @@ export default function ModesPage() {
       mode_name: modeName.trim(),
       mode_description: modeDesc.trim() || null,
     });
+    toast.success(`Updated mode "${modeName.trim()}"!`);
     setEditingId(null);
     setModeName("");
     setModeDesc("");
@@ -240,7 +243,10 @@ export default function ModesPage() {
                     </button>
                     {modes.length > 1 && (
                       <button
-                        onClick={() => deleteMode(mode.id)}
+                        onClick={() => {
+                          deleteMode(mode.id);
+                          toast.success(`Deleted mode "${mode.mode_name}"`);
+                        }}
                         title="Delete Mode"
                         className="p-1.5 rounded-lg hover:bg-rose-500/20 text-zinc-400 hover:text-rose-400 transition-colors"
                       >

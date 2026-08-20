@@ -25,12 +25,17 @@ export const s3 = new S3Client({
 export const R2_BUCKET_NAME = process.env.CLOUDFLARE_R2_BUCKET || "blankdev";
 
 export function getR2PublicUrl(key: string): string {
-	if (process.env.CLOUDFLARE_R2_PUBLIC_DOMAIN) {
-		const domain = process.env.CLOUDFLARE_R2_PUBLIC_DOMAIN.replace(/\/$/, "");
-		return `${domain}/${key}`;
+	const publicUrl =
+		process.env.R2_PUBLIC_URL || process.env.CLOUDFLARE_R2_PUBLIC_DOMAIN;
+	if (publicUrl) {
+		const domain = publicUrl.replace(/\/$/, "");
+		const cleanKey = key.replace(/^\/+/, "");
+		return `${domain}/${cleanKey}`;
 	}
 	// Fallback to endpoint/bucket/key structure
 	const endpoint = (process.env.CLOUDFLARE_R2_ENDPOINT || "").replace(/\/$/, "");
-	return `${endpoint}/${R2_BUCKET_NAME}/${key}`;
+	const cleanKey = key.replace(/^\/+/, "");
+	return `${endpoint}/${R2_BUCKET_NAME}/${cleanKey}`;
 }
+
 

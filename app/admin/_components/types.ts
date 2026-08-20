@@ -42,6 +42,9 @@ export interface ProjectModeContent {
   projectId: string;
   portfolioModeId: string;
   project_description?: string | null;
+  challenge?: string | null;
+  solution?: string | null;
+  impact?: string | null;
   project_highlights: string[];
   project_user_count?: number | null;
   project_revenue?: number | null;
@@ -120,6 +123,11 @@ export interface MyDetails {
   discord_url?: string | null;
   website_url?: string | null;
   location?: string | null;
+  address?: string | null;
+  district?: string | null;
+  state?: string | null;
+  country?: string | null;
+  pin_code?: string | null;
   years_of_experience?: number | null;
   createdAt: string;
   updatedAt: string;

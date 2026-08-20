@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { toast } from "react-toastify";
 import { useAdminStore } from "../_components/store";
 import { ArrayInput } from "../_components/ArrayInput";
 import { FileUploader } from "../_components/FileUploader";
@@ -19,6 +20,10 @@ import {
   FiCheck,
   FiLayers,
   FiFileText,
+  FiHome,
+  FiNavigation,
+  FiMap,
+  FiHash,
 } from "react-icons/fi";
 
 export default function DetailsPage() {
@@ -40,9 +45,37 @@ export default function DetailsPage() {
   const [discordUrl, setDiscordUrl] = useState(details.discord_url || "");
   const [websiteUrl, setWebsiteUrl] = useState(details.website_url || "");
   const [location, setLocation] = useState(details.location || "");
+  const [address, setAddress] = useState(details.address || "");
+  const [district, setDistrict] = useState(details.district || "");
+  const [state, setState] = useState(details.state || "");
+  const [country, setCountry] = useState(details.country || "");
+  const [pinCode, setPinCode] = useState(details.pin_code || "");
   const [yearsExp, setYearsExp] = useState<number | undefined>(
     details.years_of_experience || undefined
   );
+
+  // Sync profile facts state when store details load/update
+  React.useEffect(() => {
+    if (details) {
+      setFullName(details.full_name || "");
+      setProfileImage(details.profile_image || "");
+      setResumeUrl(details.resume_url || "");
+      setEmail(details.email || "");
+      setGithubUrl(details.github_url || "");
+      setLinkedinUrl(details.linkedin_url || "");
+      setXUrl(details.x_url || "");
+      setInstagramUrl(details.instagram_url || "");
+      setDiscordUrl(details.discord_url || "");
+      setWebsiteUrl(details.website_url || "");
+      setLocation(details.location || "");
+      setAddress(details.address || "");
+      setDistrict(details.district || "");
+      setState(details.state || "");
+      setCountry(details.country || "");
+      setPinCode(details.pin_code || "");
+      setYearsExp(details.years_of_experience || undefined);
+    }
+  }, [details]);
 
   // Active Story Mode Content lookup & state
   const activeMode = modes.find((m) => m.id === activeModeId) || modes[0];
@@ -82,9 +115,15 @@ export default function DetailsPage() {
       discord_url: discordUrl || null,
       website_url: websiteUrl || null,
       location: location || null,
+      address: address || null,
+      district: district || null,
+      state: state || null,
+      country: country || null,
+      pin_code: pinCode || null,
       years_of_experience: yearsExp ? Number(yearsExp) : null,
     });
     setSavedFactToast(true);
+    toast.success("Profile facts saved successfully!");
     setTimeout(() => setSavedFactToast(false), 2500);
   };
 
@@ -97,6 +136,7 @@ export default function DetailsPage() {
       highlights,
     });
     setSavedStoryToast(true);
+    toast.success(`Saved ${activeMode?.mode_name || "persona"} story!`);
     setTimeout(() => setSavedStoryToast(false), 2500);
   };
 
@@ -201,10 +241,127 @@ export default function DetailsPage() {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Profile Location & Address Details Section */}
+            <div className="space-y-4 pt-3 border-t border-white/10">
+              <div className="flex items-center justify-between">
+                <span className="block text-xs uppercase tracking-[0.2em] text-zinc-300 font-semibold flex items-center gap-2">
+                  <FiMapPin className="text-zinc-400 h-4 w-4" /> Location & Address Details
+                </span>
+                <span className="text-[10px] text-zinc-500 font-sans">
+                  Used across portfolio badges & about section
+                </span>
+              </div>
+
+              {/* Address / Street */}
               <div className="space-y-1">
                 <label className="block text-xs uppercase text-zinc-400 font-semibold">
-                  Location
+                  Street / Detailed Address
+                </label>
+                <div className="relative">
+                  <FiHome className="absolute left-3.5 top-3 text-zinc-500 h-4 w-4" />
+                  <input
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="e.g. 123 Tech Street, Suite 400"
+                    className="w-full rounded-xl border border-white/10 bg-zinc-900 pl-10 pr-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-white/30 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* District & State */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="block text-xs uppercase text-zinc-400 font-semibold">
+                    District / City
+                  </label>
+                  <div className="relative">
+                    <FiNavigation className="absolute left-3.5 top-3 text-zinc-500 h-4 w-4" />
+                    <input
+                      type="text"
+                      value={district}
+                      onChange={(e) => setDistrict(e.target.value)}
+                      placeholder="e.g. Kolkata / San Francisco"
+                      className="w-full rounded-xl border border-white/10 bg-zinc-900 pl-10 pr-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-white/30 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs uppercase text-zinc-400 font-semibold">
+                    State / Region
+                  </label>
+                  <div className="relative">
+                    <FiMap className="absolute left-3.5 top-3 text-zinc-500 h-4 w-4" />
+                    <input
+                      type="text"
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      placeholder="e.g. West Bengal / CA"
+                      className="w-full rounded-xl border border-white/10 bg-zinc-900 pl-10 pr-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-white/30 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Country, Pin Code & Experience */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <label className="block text-xs uppercase text-zinc-400 font-semibold">
+                    Country
+                  </label>
+                  <div className="relative">
+                    <FiGlobe className="absolute left-3.5 top-3 text-zinc-500 h-4 w-4" />
+                    <input
+                      type="text"
+                      value={country}
+                      onChange={(e) => setCountry(e.target.value)}
+                      placeholder="e.g. India / USA"
+                      className="w-full rounded-xl border border-white/10 bg-zinc-900 pl-10 pr-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-white/30 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs uppercase text-zinc-400 font-semibold">
+                    PIN Code / Postal Code
+                  </label>
+                  <div className="relative">
+                    <FiHash className="absolute left-3.5 top-3 text-zinc-500 h-4 w-4" />
+                    <input
+                      type="text"
+                      value={pinCode}
+                      onChange={(e) => setPinCode(e.target.value)}
+                      placeholder="e.g. 700001 / 94103"
+                      className="w-full rounded-xl border border-white/10 bg-zinc-900 pl-10 pr-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-white/30 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs uppercase text-zinc-400 font-semibold">
+                    Years of Exp.
+                  </label>
+                  <div className="relative">
+                    <FiClock className="absolute left-3.5 top-3 text-zinc-500 h-4 w-4" />
+                    <input
+                      type="number"
+                      value={yearsExp ?? ""}
+                      onChange={(e) =>
+                        setYearsExp(e.target.value ? Number(e.target.value) : undefined)
+                      }
+                      placeholder="5"
+                      className="w-full rounded-xl border border-white/10 bg-zinc-900 pl-10 pr-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-white/30 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Formatted / Summary Location String */}
+              <div className="space-y-1 pt-1">
+                <label className="block text-xs uppercase text-zinc-400 font-semibold flex items-center justify-between">
+                  <span>Formatted Summary Location (Badge & Short Display)</span>
+                  <span className="text-[10px] text-zinc-500 font-normal">Optional manual override</span>
                 </label>
                 <div className="relative">
                   <FiMapPin className="absolute left-3.5 top-3 text-zinc-500 h-4 w-4" />
@@ -212,26 +369,8 @@ export default function DetailsPage() {
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="San Francisco, CA"
-                    className="w-full rounded-xl border border-white/10 bg-zinc-900 pl-10 pr-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-white/30 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-[10px] uppercase text-zinc-400">
-                  Years of Experience
-                </label>
-                <div className="relative">
-                  <FiClock className="absolute left-3.5 top-2.5 text-zinc-500 h-4 w-4" />
-                  <input
-                    type="number"
-                    value={yearsExp ?? ""}
-                    onChange={(e) =>
-                      setYearsExp(e.target.value ? Number(e.target.value) : undefined)
-                    }
-                    placeholder="5"
-                    className="w-full rounded-xl border border-white/10 bg-zinc-900 pl-10 pr-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:border-white/30 focus:outline-none"
+                    placeholder="Auto-generated from District, State, Country, PIN Code"
+                    className="w-full rounded-xl border border-white/10 bg-zinc-900/80 pl-10 pr-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:border-white/30 focus:outline-none font-mono"
                   />
                 </div>
               </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { toast } from "react-toastify";
 import { useAdminStore } from "../_components/store";
 import { Experience, EmploymentType } from "../_components/types";
 import { ArrayInput } from "../_components/ArrayInput";
@@ -143,6 +144,11 @@ export default function ExperienceFactsPage() {
       });
     }
 
+    toast.success(
+      editingExp
+        ? `Updated experience at ${companyName.trim()}`
+        : `Created experience at ${companyName.trim()}`
+    );
     setIsModalOpen(false);
   };
 
@@ -156,6 +162,7 @@ export default function ExperienceFactsPage() {
       order: existing.length + 1,
       visible: true,
     });
+    toast.success("Added metric!");
     setNewMetricLabel("");
     setNewMetricValue("");
     setNewMetricExpId("");
@@ -170,6 +177,7 @@ export default function ExperienceFactsPage() {
       order: existing.length + 1,
       visible: true,
     });
+    toast.success("Added achievement bullet!");
     setNewAchContent("");
     setNewAchExpId("");
   };
@@ -283,7 +291,10 @@ export default function ExperienceFactsPage() {
                     <FiEdit2 className="h-4 w-4" />
                   </button>
                   <button
-                    onClick={() => deleteExperience(exp.id)}
+                    onClick={() => {
+                      deleteExperience(exp.id);
+                      toast.success(`Deleted experience at ${exp.company_name}`);
+                    }}
                     className="p-1.5 rounded-lg hover:bg-rose-500/20 text-zinc-400 hover:text-rose-400 transition-colors"
                     title="Delete Experience"
                   >
@@ -309,7 +320,10 @@ export default function ExperienceFactsPage() {
                         <span className="text-[10px] text-zinc-400 ml-1.5 uppercase">{m.label}</span>
                       </div>
                       <button
-                        onClick={() => deleteExperienceMetric(m.id)}
+                        onClick={() => {
+                          deleteExperienceMetric(m.id);
+                          toast.success("Deleted metric!");
+                        }}
                         className="p-1 text-zinc-500 hover:text-rose-400"
                       >
                         <FiTrash2 className="h-3.5 w-3.5" />
@@ -366,7 +380,10 @@ export default function ExperienceFactsPage() {
                         <span>{a.content}</span>
                       </div>
                       <button
-                        onClick={() => deleteExperienceAchievement(a.id)}
+                        onClick={() => {
+                          deleteExperienceAchievement(a.id);
+                          toast.success("Deleted achievement bullet!");
+                        }}
                         className="p-1 text-zinc-500 hover:text-rose-400 shrink-0"
                       >
                         <FiTrash2 className="h-3.5 w-3.5" />

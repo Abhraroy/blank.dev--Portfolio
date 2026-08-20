@@ -9,7 +9,7 @@ import { type SelectedProject } from "@/components/SelectedWork/selectedWork.con
 export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const { projects } = useAdminStore();
+  const { projects, activeModeId } = useAdminStore();
 
   const allProjects: SelectedProject[] = useMemo(() => {
     if (projects.length === 0) {
@@ -31,7 +31,9 @@ export default function ProjectsPage() {
       ];
     }
     return projects.map((p, idx) => {
-      const modeContent = p.modeContents?.[0];
+      const modeContent =
+        p.modeContents?.find((m) => m.portfolioModeId === activeModeId) ||
+        p.modeContents?.[0];
       return {
         id: p.id,
         slug: p.slug,
@@ -43,13 +45,13 @@ export default function ProjectsPage() {
         liveUrl: p.project_url || undefined,
         category: p.project_type || "Project Case Study",
         metrics: (modeContent?.project_highlights || ["Placeholder"]).map((h: string) => ({ label: h })),
-        challenge: modeContent?.project_description || "Placeholder",
-        solution: `Built with ${p.project_tech?.join(", ") || "Placeholder"}.`,
-        impact: `Active ${p.project_status || "Placeholder"} project.`,
+        challenge: modeContent?.challenge || modeContent?.project_description || "No challenge statement configured.",
+        solution: modeContent?.solution || `Built with ${p.project_tech?.join(", ") || "modern tech stack"}.`,
+        impact: modeContent?.impact || `Active ${p.project_status || "production"} project.`,
         technicalHighlights: modeContent?.project_highlights || ["Placeholder"],
       };
     });
-  }, [projects]);
+  }, [projects, activeModeId]);
 
   const categories = useMemo(() => {
     const cats = new Set<string>();

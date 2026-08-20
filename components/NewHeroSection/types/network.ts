@@ -55,7 +55,7 @@ export type SkillNodeData = {
 /** Center brand node config. */
 export type CenterNodeData = {
   id: string;
-  label: string;
+  // label: string;
   logoUrl?: string;
 };
 

@@ -4,6 +4,7 @@ import React from "react";
 import { usePathname } from "next/navigation";
 import { useAdminStore } from "./store";
 import { FiLayers, FiActivity } from "react-icons/fi";
+import { toast } from "react-toastify";
 
 const titleMap: Record<string, { title: string; subtitle: string }> = {
   "/admin": {
@@ -87,7 +88,10 @@ export const Header: React.FC = () => {
               return (
                 <button
                   key={mode.id}
-                  onClick={() => setActiveModeId(mode.id)}
+                  onClick={() => {
+                    setActiveModeId(mode.id);
+                    toast.info(`Switched active persona to "${mode.mode_name}"`);
+                  }}
                   className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-mono whitespace-nowrap transition-all ${
                     isSelected
                       ? "bg-white/15 text-zinc-50 shadow-sm font-semibold border border-white/20"
