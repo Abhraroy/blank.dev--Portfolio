@@ -494,77 +494,12 @@ export default function CMSSelectedWorkPage() {
   const handleSaveNewWork = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formState.project_name.trim() || !formState.slug.trim()) {
-      toast.error("Project Name and Slug are required.");
+    if (!formState.projectId) {
+      toast.error("Please select a project from the master project pool.");
       return;
     }
 
     let targetProjectId = formState.projectId;
-
-    const techArray = formState.project_tech
-      .split(",")
-      .map((t) => t.trim())
-      .filter(Boolean);
-
-    const tagsArray = formState.project_tags
-      .split(",")
-      .map((t) => t.trim())
-      .filter(Boolean);
-
-    // If existing project selected and updated, update project
-    if (targetProjectId && targetProjectId !== "__new__") {
-      await updateProject(targetProjectId, {
-        project_name: formState.project_name,
-        slug: formState.slug,
-        project_tech: techArray,
-        project_tags: tagsArray,
-        project_url: formState.project_url || null,
-        project_github: formState.project_github || null,
-        project_image: formState.project_image || null,
-        project_md_url: formState.projectMdUrl || null,
-        project_status: formState.project_status,
-        project_type: formState.project_type,
-        project_visibility_status: formState.project_visibility_status,
-      });
-    } else {
-      // Create brand new project
-      const newSlug =
-        formState.slug ||
-        formState.project_name.toLowerCase().replace(/\s+/g, "-");
-
-      const newProjData: Omit<Project, "id" | "createdAt" | "updatedAt"> = {
-        project_name: formState.project_name,
-        slug: newSlug,
-        project_tech: techArray,
-        project_tags: tagsArray,
-        project_url: formState.project_url || null,
-        project_github: formState.project_github || null,
-        project_image: formState.project_image || null,
-        project_md_url: formState.projectMdUrl || null,
-        project_status: formState.project_status,
-        project_type: formState.project_type,
-        project_visibility_status: formState.project_visibility_status,
-      };
-
-      try {
-        const res = await fetch("/api/admin/projects", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(newProjData),
-        });
-        if (res.ok) {
-          const createdProj = await res.json();
-          targetProjectId = createdProj.id;
-        } else {
-          toast.error("Failed to create project in backend.");
-          return;
-        }
-      } catch (err) {
-        console.error("Create project error:", err);
-        toast.error("Failed to create project.");
-        return;
-      }
-    }
 
     // Upsert Case Study Mode Content if persona mode is selected
     if (targetProjectId && formState.modeTabId) {
@@ -586,23 +521,6 @@ export default function CMSSelectedWorkPage() {
       });
     }
 
-    // Add Highlights if provided
-    if (formState.highlights.trim() && targetProjectId) {
-      const hlList = formState.highlights
-        .split(",")
-        .map((h) => h.trim())
-        .filter(Boolean);
-
-      hlList.forEach((hl, idx) => {
-        addProjectHighlight({
-          projectId: targetProjectId,
-          content: hl,
-          order: idx + 1,
-          visible: true,
-        });
-      });
-    }
-
     // Add Selected Work CMS Item
     await addSelectedWorkCMSItem({
       projectId: targetProjectId,
@@ -616,7 +534,8 @@ export default function CMSSelectedWorkPage() {
       showHighlights: formState.showHighlights,
     });
 
-    toast.success(`Successfully added "${formState.project_name}" to Selected Work!`);
+    const selectedProj = projects.find((p) => p.id === targetProjectId);
+    toast.success(`Successfully added "${selectedProj?.project_name || "Project"}" to Selected Work!`);
     setIsAddModalOpen(false);
     setFormState(defaultFormState);
   };
@@ -626,32 +545,7 @@ export default function CMSSelectedWorkPage() {
     e.preventDefault();
     if (!editingItem) return;
 
-    const techArray = formState.project_tech
-      .split(",")
-      .map((t) => t.trim())
-      .filter(Boolean);
-
-    const tagsArray = formState.project_tags
-      .split(",")
-      .map((t) => t.trim())
-      .filter(Boolean);
-
-    // Update underlying project facts
-    await updateProject(editingItem.project.id, {
-      project_name: formState.project_name,
-      slug: formState.slug,
-      project_tech: techArray,
-      project_tags: tagsArray,
-      project_url: formState.project_url || null,
-      project_github: formState.project_github || null,
-      project_image: formState.project_image || null,
-      project_md_url: formState.projectMdUrl || null,
-      project_status: formState.project_status,
-      project_type: formState.project_type,
-      project_visibility_status: formState.project_visibility_status,
-    });
-
-    // Update Case Study Mode Content
+    // Update Case Study Mode Content for selected persona
     if (formState.modeTabId) {
       const modeHlList = formState.modeHighlights
         .split(",")
@@ -684,7 +578,7 @@ export default function CMSSelectedWorkPage() {
       });
     }
 
-    toast.success(`Updated "${formState.project_name}"!`);
+    toast.success(`Updated Case Study & CMS settings for "${editingItem.project.project_name}"!`);
     setEditingItem(null);
     setFormState(defaultFormState);
   };
@@ -1174,197 +1068,60 @@ export default function CMSSelectedWorkPage() {
             </div>
 
             <form onSubmit={handleSaveNewWork} className="space-y-6">
-              {/* SECTION 2: FACTUAL PROJECT DATA */}
-              <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 space-y-5">
-                <div className="border-b border-white/10 pb-3">
+              {/* SECTION 2: FACTUAL PROJECT DATA (READ-ONLY REFERENCE) */}
+              <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 space-y-3">
+                <div className="flex items-center justify-between border-b border-white/10 pb-3">
                   <span className="text-xs sm:text-sm font-bold uppercase text-indigo-300 tracking-wider flex items-center gap-2">
-                    <FiInfo className="text-indigo-400 h-4 w-4" /> 2. Factual Project Data
+                    <FiInfo className="text-indigo-400 h-4 w-4" /> 2. Master Project Facts (Factual Data)
                   </span>
+                  <a
+                    href="/admin/projects"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs font-mono text-indigo-400 hover:text-indigo-300 hover:underline flex items-center gap-1 font-semibold"
+                  >
+                    Edit Master Facts in /admin/projects <FiExternalLink />
+                  </a>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2">
-                      Project Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Next.js SaaS Platform"
-                      value={formState.project_name}
-                      onChange={(e) =>
-                        setFormState({ ...formState, project_name: e.target.value })
-                      }
-                      className="w-full rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
-                    />
-                  </div>
+                {formState.projectId && formState.projectId !== "__new__" ? (
+                  (() => {
+                    const selProj = projects.find((p) => p.id === formState.projectId);
+                    if (!selProj) return null;
+                    return (
+                      <div className="space-y-3 pt-1">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <div>
+                            <h3 className="text-base font-bold text-zinc-100">{selProj.project_name}</h3>
+                            <p className="text-xs font-mono text-zinc-400">/{selProj.slug}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-white/10 text-zinc-300 border border-white/10">
+                              {selProj.project_status}
+                            </span>
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-white/5 text-zinc-400 border border-white/10">
+                              {selProj.project_type}
+                            </span>
+                          </div>
+                        </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2">
-                      Slug *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. saas-platform"
-                      value={formState.slug}
-                      onChange={(e) =>
-                        setFormState({ ...formState, slug: e.target.value })
-                      }
-                      className="w-full rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2">
-                      Tech Stack (Comma-separated)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Next.js, TypeScript, TailwindCSS"
-                      value={formState.project_tech}
-                      onChange={(e) =>
-                        setFormState({ ...formState, project_tech: e.target.value })
-                      }
-                      className="w-full rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2">
-                      Tags (Comma-separated)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Fullstack, Web App, AI"
-                      value={formState.project_tags}
-                      onChange={(e) =>
-                        setFormState({ ...formState, project_tags: e.target.value })
-                      }
-                      className="w-full rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2">
-                      Status
-                    </label>
-                    <select
-                      value={formState.project_status}
-                      onChange={(e) =>
-                        setFormState({
-                          ...formState,
-                          project_status: e.target.value as ProjectStatus,
-                        })
-                      }
-                      className="w-full rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
-                    >
-                      <option value="ACTIVE">ACTIVE</option>
-                      <option value="COMPLETED">COMPLETED</option>
-                      <option value="IN_PROGRESS">IN_PROGRESS</option>
-                      <option value="PLANNED">PLANNED</option>
-                      <option value="ARCHIVED">ARCHIVED</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2">
-                      Type
-                    </label>
-                    <select
-                      value={formState.project_type}
-                      onChange={(e) =>
-                        setFormState({
-                          ...formState,
-                          project_type: e.target.value as ProjectType,
-                        })
-                      }
-                      className="w-full rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
-                    >
-                      <option value="PERSONAL">PERSONAL</option>
-                      <option value="PROFESSIONAL">PROFESSIONAL</option>
-                      <option value="OPEN_SOURCE">OPEN_SOURCE</option>
-                      <option value="CLIENT_WORK">CLIENT_WORK</option>
-                      <option value="SIDE_PROJECT">SIDE_PROJECT</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2">
-                      Visibility
-                    </label>
-                    <select
-                      value={formState.project_visibility_status}
-                      onChange={(e) =>
-                        setFormState({
-                          ...formState,
-                          project_visibility_status: e.target
-                            .value as ProjectVisibilityStatus,
-                        })
-                      }
-                      className="w-full rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
-                    >
-                      <option value="PUBLIC">PUBLIC</option>
-                      <option value="PRIVATE">PRIVATE</option>
-                      <option value="UNLISTED">UNLISTED</option>
-                      <option value="DRAFT">DRAFT</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2">
-                      Live URL
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="https://..."
-                      value={formState.project_url}
-                      onChange={(e) =>
-                        setFormState({ ...formState, project_url: e.target.value })
-                      }
-                      className="w-full rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2">
-                      GitHub URL
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="https://github.com/..."
-                      value={formState.project_github}
-                      onChange={(e) =>
-                        setFormState({
-                          ...formState,
-                          project_github: e.target.value,
-                        })
-                      }
-                      className="w-full rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2">
-                    Main Image URL
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="https://..."
-                    value={formState.project_image}
-                    onChange={(e) =>
-                      setFormState({ ...formState, project_image: e.target.value })
-                    }
-                    className="w-full rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
-                  />
-                </div>
+                        {selProj.project_tech && selProj.project_tech.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {selProj.project_tech.map((t, idx) => (
+                              <span key={idx} className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-white/5 text-zinc-300 border border-white/10">
+                                {t}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()
+                ) : (
+                  <p className="text-xs font-mono text-zinc-400 italic">
+                    Select an existing project from the dropdown above to attach to Selected Work. Master project facts are managed in the <a href="/admin/projects" target="_blank" className="text-indigo-400 underline font-semibold">Projects Pool</a>.
+                  </p>
+                )}
               </div>
 
               {/* SECTION 3: CASE STUDY FIELDS (ONE-LINER, CHALLENGE, SOLUTION, IMPACT, HIGHLIGHTS, MD FILE) */}
@@ -1677,126 +1434,47 @@ export default function CMSSelectedWorkPage() {
             </div>
 
             <form onSubmit={handleSaveEditWork} className="space-y-6">
-              {/* SECTION 1: FACTUAL PROJECT DATA */}
-              <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 space-y-5">
-                <div className="border-b border-white/10 pb-3">
+              {/* SECTION 1: FACTUAL PROJECT DATA (READ-ONLY REFERENCE) */}
+              <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 space-y-3">
+                <div className="flex items-center justify-between border-b border-white/10 pb-3">
                   <span className="text-xs sm:text-sm font-bold uppercase text-indigo-300 tracking-wider flex items-center gap-2">
-                    <FiInfo className="text-indigo-400 h-4 w-4" /> 1. Factual Project Data
+                    <FiInfo className="text-indigo-400 h-4 w-4" /> 1. Master Project Facts (Factual Data)
                   </span>
+                  <a
+                    href="/admin/projects"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs font-mono text-indigo-400 hover:text-indigo-300 hover:underline flex items-center gap-1 font-semibold"
+                  >
+                    Edit Master Facts in /admin/projects <FiExternalLink />
+                  </a>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2">
-                      Project Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formState.project_name}
-                      onChange={(e) =>
-                        setFormState({ ...formState, project_name: e.target.value })
-                      }
-                      className="w-full rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
-                    />
+                <div className="space-y-3 pt-1">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div>
+                      <h3 className="text-base font-bold text-zinc-100">{editingItem.project.project_name}</h3>
+                      <p className="text-xs font-mono text-zinc-400">/{editingItem.project.slug}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-white/10 text-zinc-300 border border-white/10">
+                        {editingItem.project.project_status}
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-white/5 text-zinc-400 border border-white/10">
+                        {editingItem.project.project_type}
+                      </span>
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2">
-                      Slug *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formState.slug}
-                      onChange={(e) =>
-                        setFormState({ ...formState, slug: e.target.value })
-                      }
-                      className="w-full rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2">
-                      Tech Stack (Comma-separated)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Next.js, TypeScript, TailwindCSS"
-                      value={formState.project_tech}
-                      onChange={(e) =>
-                        setFormState({ ...formState, project_tech: e.target.value })
-                      }
-                      className="w-full rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2">
-                      Tags (Comma-separated)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Fullstack, Web App, AI"
-                      value={formState.project_tags}
-                      onChange={(e) =>
-                        setFormState({ ...formState, project_tags: e.target.value })
-                      }
-                      className="w-full rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2">
-                      Live URL
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="https://..."
-                      value={formState.project_url}
-                      onChange={(e) =>
-                        setFormState({ ...formState, project_url: e.target.value })
-                      }
-                      className="w-full rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2">
-                      GitHub URL
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="https://github.com/..."
-                      value={formState.project_github}
-                      onChange={(e) =>
-                        setFormState({
-                          ...formState,
-                          project_github: e.target.value,
-                        })
-                      }
-                      className="w-full rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2">
-                    Main Image URL
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="https://..."
-                    value={formState.project_image}
-                    onChange={(e) =>
-                      setFormState({ ...formState, project_image: e.target.value })
-                    }
-                    className="w-full rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
-                  />
+                  {editingItem.project.project_tech && editingItem.project.project_tech.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {editingItem.project.project_tech.map((t, idx) => (
+                        <span key={idx} className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-white/5 text-zinc-300 border border-white/10">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 

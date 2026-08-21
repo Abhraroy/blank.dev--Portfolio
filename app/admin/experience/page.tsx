@@ -29,14 +29,11 @@ const employmentTypes: EmploymentType[] = [
 export default function ExperienceFactsPage() {
   const {
     experiences,
-    modes,
-    activeModeId,
     experienceMetrics,
     experienceAchievements,
     addExperience,
     updateExperience,
     deleteExperience,
-    updateExperienceModeContent,
     addExperienceMetric,
     deleteExperienceMetric,
     addExperienceAchievement,
@@ -58,11 +55,6 @@ export default function ExperienceFactsPage() {
   const [endDate, setEndDate] = useState("");
   const [currentlyWorking, setCurrentlyWorking] = useState(false);
 
-  // Form state - Per Mode Content
-  const [modeTabId, setModeTabId] = useState<string>(activeModeId);
-  const [expDescription, setExpDescription] = useState("");
-  const [expHighlights, setExpHighlights] = useState<string[]>([]);
-
   // Metric Form state per experience
   const [newMetricExpId, setNewMetricExpId] = useState<string>("");
   const [newMetricLabel, setNewMetricLabel] = useState("");
@@ -82,10 +74,6 @@ export default function ExperienceFactsPage() {
     setEndDate("");
     setCurrentlyWorking(true);
 
-    setModeTabId(activeModeId);
-    setExpDescription("");
-    setExpHighlights([]);
-
     setIsModalOpen(true);
   };
 
@@ -99,19 +87,12 @@ export default function ExperienceFactsPage() {
     setEndDate(exp.end_date ? exp.end_date.slice(0, 10) : "");
     setCurrentlyWorking(exp.currently_working);
 
-    const mc = exp.modeContents?.find((c) => c.portfolioModeId === activeModeId);
-    setModeTabId(activeModeId);
-    setExpDescription(mc?.experience_description || "");
-    setExpHighlights(mc?.experience_highlights || []);
-
     setIsModalOpen(true);
   };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!companyName.trim() || !roleTitle.trim()) return;
-
-    let targetExpId = editingExp?.id;
 
     if (editingExp) {
       updateExperience(editingExp.id, {
@@ -124,8 +105,6 @@ export default function ExperienceFactsPage() {
         currently_working: currentlyWorking,
       });
     } else {
-      const newExpId = `exp-${Date.now()}`;
-      targetExpId = newExpId;
       addExperience({
         company_name: companyName.trim(),
         role_title: roleTitle.trim(),
@@ -134,13 +113,6 @@ export default function ExperienceFactsPage() {
         start_date: startDate,
         end_date: currentlyWorking ? null : endDate || null,
         currently_working: currentlyWorking,
-      });
-    }
-
-    if (targetExpId) {
-      updateExperienceModeContent(targetExpId, modeTabId, {
-        experience_description: expDescription || null,
-        experience_highlights: expHighlights,
       });
     }
 

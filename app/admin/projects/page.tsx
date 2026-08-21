@@ -53,13 +53,10 @@ const visibilityOptions: ProjectVisibilityStatus[] = [
 export default function ProjectsFactsPage() {
   const {
     projects,
-    modes,
-    activeModeId,
     projectHighlights,
     addProject,
     updateProject,
     deleteProject,
-    updateProjectModeContent,
     addProjectHighlight,
     deleteProjectHighlight,
   } = useAdminStore();
@@ -71,7 +68,7 @@ export default function ProjectsFactsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
 
-  // Form states
+  // Form states - Factual Project Data
   const [projectName, setProjectName] = useState("");
   const [slug, setSlug] = useState("");
   const [projectImage, setProjectImage] = useState("");
@@ -85,13 +82,6 @@ export default function ProjectsFactsPage() {
   const [projectStatus, setProjectStatus] = useState<ProjectStatus>("ACTIVE");
   const [projectType, setProjectType] = useState<ProjectType>("PERSONAL");
   const [projectVisibility, setProjectVisibility] = useState<ProjectVisibilityStatus>("PUBLIC");
-
-  // Per Mode Content form states
-  const [modeTabId, setModeTabId] = useState<string>(activeModeId);
-  const [modeDescription, setModeDescription] = useState("");
-  const [modeHighlights, setModeHighlights] = useState<string[]>([]);
-  const [modeUserCount, setModeUserCount] = useState<number | "">("");
-  const [modeRevenue, setModeRevenue] = useState<number | "">("");
 
   // Highlight Box state per project
   const [newHlProjectId, setNewHlProjectId] = useState<string>("");
@@ -113,12 +103,6 @@ export default function ProjectsFactsPage() {
     setProjectType("PERSONAL");
     setProjectVisibility("PUBLIC");
 
-    setModeTabId(activeModeId);
-    setModeDescription("");
-    setModeHighlights([]);
-    setModeUserCount("");
-    setModeRevenue("");
-
     setIsModalOpen(true);
   };
 
@@ -138,15 +122,6 @@ export default function ProjectsFactsPage() {
     setProjectType(project.project_type);
     setProjectVisibility(project.project_visibility_status);
 
-    const activeMc = project.modeContents?.find(
-      (c) => c.portfolioModeId === activeModeId
-    );
-    setModeTabId(activeModeId);
-    setModeDescription(activeMc?.project_description || "");
-    setModeHighlights(activeMc?.project_highlights || []);
-    setModeUserCount(activeMc?.project_user_count ?? "");
-    setModeRevenue(activeMc?.project_revenue ?? "");
-
     setIsModalOpen(true);
   };
 
@@ -160,8 +135,6 @@ export default function ProjectsFactsPage() {
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)+/g, "");
-
-    let targetProjectId = editingProject?.id;
 
     if (editingProject) {
       updateProject(editingProject.id, {
@@ -180,8 +153,6 @@ export default function ProjectsFactsPage() {
         project_visibility_status: projectVisibility,
       } as any);
     } else {
-      const newProjId = `proj-${Date.now()}`;
-      targetProjectId = newProjId;
       addProject({
         project_name: projectName.trim(),
         slug: computedSlug,
@@ -197,15 +168,6 @@ export default function ProjectsFactsPage() {
         project_type: projectType,
         project_visibility_status: projectVisibility,
       } as any);
-    }
-
-    if (targetProjectId) {
-      updateProjectModeContent(targetProjectId, modeTabId, {
-        project_description: modeDescription || null,
-        project_highlights: modeHighlights,
-        project_user_count: modeUserCount !== "" ? Number(modeUserCount) : null,
-        project_revenue: modeRevenue !== "" ? Number(modeRevenue) : null,
-      });
     }
 
     toast.success(
@@ -253,7 +215,7 @@ export default function ProjectsFactsPage() {
             <FiFolder className="text-zinc-300 h-6 w-6" /> Factual Projects Pool
           </h1>
           <p className="text-sm text-zinc-300 mt-1 leading-relaxed">
-            Manage project facts (`Project`), feature badges (`ProjectHighlight`), and per-mode storytelling (`ProjectModeContent`).
+            Manage master project facts (`Project`), media assets, tech stack, and feature badges (`ProjectHighlight`).
           </p>
         </div>
         <button
@@ -316,9 +278,6 @@ export default function ProjectsFactsPage() {
       {/* Projects List Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {filteredProjects.map((project) => {
-          const activeMc = project.modeContents?.find(
-            (c) => c.portfolioModeId === activeModeId
-          );
           const highlights = projectHighlights.filter((h) => h.projectId === project.id);
 
           return (
@@ -424,47 +383,6 @@ export default function ProjectsFactsPage() {
                       <FiPlus /> Add Badge
                     </button>
                   </div>
-                </div>
-
-                {/* Storytelling box for active persona mode */}
-                <div className="rounded-xl border border-white/10 bg-white/5 p-3.5 space-y-2">
-                  <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-zinc-400">
-                    <span className="flex items-center gap-1 font-semibold">
-                      <FiLayers className="h-3 w-3 text-zinc-300" /> Mode Storytelling (
-                      {modes.find((m) => m.id === activeModeId)?.mode_name})
-                    </span>
-                    {activeMc && (
-                      <span className="text-emerald-400">Customized</span>
-                    )}
-                  </div>
-                  {activeMc ? (
-                    <div className="space-y-1.5 text-xs font-sans">
-                      <p className="text-zinc-300 line-clamp-2">
-                        {activeMc.project_description || "No description for this mode."}
-                      </p>
-                      {(activeMc.project_user_count !== null ||
-                        activeMc.project_revenue !== null) && (
-                        <div className="flex items-center gap-4 text-[11px] font-mono text-zinc-400 pt-1">
-                          {activeMc.project_user_count !== null && (
-                            <span className="flex items-center gap-1">
-                              <FiUsers className="text-zinc-300 h-3 w-3" />
-                              {activeMc.project_user_count} Users
-                            </span>
-                          )}
-                          {activeMc.project_revenue !== null && (
-                            <span className="flex items-center gap-1">
-                              <FiDollarSign className="text-zinc-300 h-3 w-3" />$
-                              {activeMc.project_revenue} ARR
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-zinc-500 italic font-sans">
-                      No custom storytelling set for active mode. Using default facts.
-                    </p>
-                  )}
                 </div>
               </div>
 
