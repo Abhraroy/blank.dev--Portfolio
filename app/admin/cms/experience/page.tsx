@@ -192,6 +192,31 @@ export default function CMSExperiencePage() {
     });
   };
 
+  // Auto-sync: Ensure any experience in master pool is present in Experience CMS
+  React.useEffect(() => {
+    if (!experiences || !experienceCMS) return;
+    const existingExpIds = new Set((experienceCMS.items || []).map((i) => i.experienceId));
+    const missingExp = experiences.filter((exp) => !existingExpIds.has(exp.id));
+
+    if (missingExp.length > 0) {
+      missingExp.forEach(async (exp, idx) => {
+        await addExperienceCMSItem({
+          experienceId: exp.id,
+          displayOrder: (experienceCMS.items || []).length + idx + 1,
+          visible: true,
+          isFeatured: false,
+          showYear: true,
+          showRole: true,
+          showCompany: true,
+          showDescription: true,
+          showTechnologies: true,
+          showAchievements: true,
+          showMetrics: true,
+        });
+      });
+    }
+  }, [experiences, experienceCMS?.items, addExperienceCMSItem]);
+
   // Submit Add Form
   const handleSaveAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -210,9 +235,7 @@ export default function CMSExperiencePage() {
         return;
       }
       const compName = formState.company_name.trim();
-      const newId = `exp-${Date.now()}`;
-      targetExpId = newId;
-      addExperience({
+      const createdExp = await addExperience({
         company_name: compName || "Freelance",
         role_title: formState.role_title.trim(),
         employment_type: compName ? "FULL_TIME" : "FREELANCE",
@@ -221,6 +244,13 @@ export default function CMSExperiencePage() {
         end_date: formState.end_date || null,
         currently_working: !formState.end_date,
       });
+
+      if (createdExp && createdExp.id) {
+        targetExpId = createdExp.id;
+      } else {
+        toast.error("Failed to create experience record.");
+        return;
+      }
     }
 
     // Save persona storytelling if mode selected
@@ -230,14 +260,14 @@ export default function CMSExperiencePage() {
         .map((h) => h.trim())
         .filter(Boolean);
 
-      updateExperienceModeContent(targetExpId, formState.modeTabId, {
+      await updateExperienceModeContent(targetExpId, formState.modeTabId, {
         experience_description: formState.expDescription || null,
         experience_highlights: hlList,
       });
     }
 
     // Add to CMS display list
-    addExperienceCMSItem({
+    await addExperienceCMSItem({
       experienceId: targetExpId,
       displayOrder: cmsItems.length + 1,
       visible: true,
@@ -268,7 +298,7 @@ export default function CMSExperiencePage() {
         .map((h) => h.trim())
         .filter(Boolean);
 
-      updateExperienceModeContent(editingItem.experience.id, formState.modeTabId, {
+      await updateExperienceModeContent(editingItem.experience.id, formState.modeTabId, {
         experience_description: formState.expDescription || null,
         experience_highlights: hlList,
       });
@@ -276,7 +306,7 @@ export default function CMSExperiencePage() {
 
     // Update CMS item settings if present
     if (editingItem.cmsItem) {
-      updateExperienceCMSItem(editingItem.cmsItem.id, {
+      await updateExperienceCMSItem(editingItem.cmsItem.id, {
         isFeatured: formState.isFeatured,
         showYear: formState.showYear,
         showRole: formState.showRole,

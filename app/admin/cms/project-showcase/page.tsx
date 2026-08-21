@@ -141,6 +141,7 @@ export default function CMSProjectShowcasePage() {
     projects,
     modes,
     activeModeId,
+    selectedWorkCMS,
     projectShowcaseCMS,
     updateProjectShowcaseCMS,
     addProjectShowcaseCMSItem,
@@ -158,6 +159,28 @@ export default function CMSProjectShowcasePage() {
   } | null>(null);
 
   const [formState, setFormState] = useState<FormState>(defaultFormState);
+
+  // Auto-sync: Ensure any project in Selected Work CMS is present in Showcase Track CMS as well
+  useEffect(() => {
+    if (!selectedWorkCMS?.items || !projectShowcaseCMS) return;
+    const existingPSProjectIds = new Set((projectShowcaseCMS.items || []).map((i) => i.projectId));
+    const missingFromSW = selectedWorkCMS.items.filter(
+      (swItem) => !existingPSProjectIds.has(swItem.projectId)
+    );
+
+    if (missingFromSW.length > 0) {
+      missingFromSW.forEach(async (swItem, idx) => {
+        await addProjectShowcaseCMSItem({
+          projectId: swItem.projectId,
+          displayOrder: (projectShowcaseCMS.items || []).length + idx + 1,
+          visible: true,
+          showDescription: true,
+          showTechnologies: true,
+          showViewAction: true,
+        });
+      });
+    }
+  }, [selectedWorkCMS?.items, projectShowcaseCMS?.items, addProjectShowcaseCMSItem]);
 
   const psCMSItems = useMemo(() => {
     return [...(projectShowcaseCMS.items || [])].sort(

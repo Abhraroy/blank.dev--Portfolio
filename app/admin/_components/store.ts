@@ -64,7 +64,7 @@ interface AdminState {
   // Experience
   addExperience: (
     experience: Omit<Experience, "id" | "createdAt" | "updatedAt">
-  ) => void;
+  ) => Promise<Experience | null>;
   updateExperience: (id: string, experience: Partial<Experience>) => void;
   deleteExperience: (id: string) => void;
   updateExperienceModeContent: (
@@ -138,9 +138,9 @@ interface AdminState {
 
   // Experience Section CMS Actions
   updateExperienceCMS: (data: Partial<ExperienceSectionCMSData>) => void;
-  addExperienceCMSItem: (item: Omit<ExperienceSectionCMSItemData, "id" | "sectionId" | "createdAt" | "updatedAt">) => void;
-  updateExperienceCMSItem: (id: string, item: Partial<ExperienceSectionCMSItemData>) => void;
-  deleteExperienceCMSItem: (id: string) => void;
+  addExperienceCMSItem: (item: Omit<ExperienceSectionCMSItemData, "id" | "sectionId" | "createdAt" | "updatedAt">) => Promise<void>;
+  updateExperienceCMSItem: (id: string, item: Partial<ExperienceSectionCMSItemData>) => Promise<void>;
+  deleteExperienceCMSItem: (id: string) => Promise<void>;
   reorderExperienceCMSItems: (items: ExperienceSectionCMSItemData[]) => void;
 
   // Selected Work Section CMS Actions
@@ -152,9 +152,9 @@ interface AdminState {
 
   // Project Showcase Section CMS Actions
   updateProjectShowcaseCMS: (data: Partial<ProjectShowcaseSectionCMSData>) => void;
-  addProjectShowcaseCMSItem: (item: Omit<ProjectShowcaseSectionCMSItemData, "id" | "sectionId" | "createdAt" | "updatedAt">) => void;
-  updateProjectShowcaseCMSItem: (id: string, item: Partial<ProjectShowcaseSectionCMSItemData>) => void;
-  deleteProjectShowcaseCMSItem: (id: string) => void;
+  addProjectShowcaseCMSItem: (item: Omit<ProjectShowcaseSectionCMSItemData, "id" | "sectionId" | "createdAt" | "updatedAt">) => Promise<void>;
+  updateProjectShowcaseCMSItem: (id: string, item: Partial<ProjectShowcaseSectionCMSItemData>) => Promise<void>;
+  deleteProjectShowcaseCMSItem: (id: string) => Promise<void>;
   reorderProjectShowcaseCMSItems: (items: ProjectShowcaseSectionCMSItemData[]) => void;
 
   // Hero Nodes Section CMS Actions
@@ -449,10 +449,12 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
         const newExp = await res.json();
         set((state) => ({ experiences: [newExp, ...state.experiences] }));
         await get().fetchInitialData();
+        return newExp;
       }
     } catch (e) {
       console.error("addExperience error:", e);
     }
+    return null;
   },
 
   updateExperience: async (id, expData) => {
@@ -766,32 +768,80 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
     }
   },
 
-  addExperienceCMSItem: (itemData) =>
+  addExperienceCMSItem: async (itemData) => {
+    const newItem = {
+      ...itemData,
+      id: `ecmsi-${Date.now()}`,
+      sectionId: get().experienceCMS?.id || "exp-cms-main",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const updatedItems = [...(get().experienceCMS?.items || []), newItem];
     set((state) => ({
       experienceCMS: {
         ...state.experienceCMS,
-        items: [
-          ...state.experienceCMS.items,
-          { ...itemData, id: `ecmsi-${Date.now()}`, sectionId: state.experienceCMS.id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        ],
+        items: updatedItems,
       },
-    })),
+    }));
+    try {
+      const res = await fetch("/api/admin/cms/composition", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sectionType: "EXPERIENCE", items: updatedItems }),
+      });
+      if (res.ok) {
+        await get().fetchInitialData();
+      }
+    } catch (e) {
+      console.error("addExperienceCMSItem error:", e);
+    }
+  },
 
-  updateExperienceCMSItem: (id, itemData) =>
+  updateExperienceCMSItem: async (id, itemData) => {
+    const updatedItems = (get().experienceCMS?.items || []).map((i) =>
+      i.id === id ? { ...i, ...itemData } : i
+    );
     set((state) => ({
       experienceCMS: {
         ...state.experienceCMS,
-        items: state.experienceCMS.items.map((i) => (i.id === id ? { ...i, ...itemData } : i)),
+        items: updatedItems,
       },
-    })),
+    }));
+    try {
+      const res = await fetch("/api/admin/cms/composition", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sectionType: "EXPERIENCE", items: updatedItems }),
+      });
+      if (res.ok) {
+        await get().fetchInitialData();
+      }
+    } catch (e) {
+      console.error("updateExperienceCMSItem error:", e);
+    }
+  },
 
-  deleteExperienceCMSItem: (id) =>
+  deleteExperienceCMSItem: async (id) => {
+    const updatedItems = (get().experienceCMS?.items || []).filter((i) => i.id !== id);
     set((state) => ({
       experienceCMS: {
         ...state.experienceCMS,
-        items: state.experienceCMS.items.filter((i) => i.id !== id),
+        items: updatedItems,
       },
-    })),
+    }));
+    try {
+      const res = await fetch("/api/admin/cms/composition", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sectionType: "EXPERIENCE", items: updatedItems }),
+      });
+      if (res.ok) {
+        await get().fetchInitialData();
+      }
+    } catch (e) {
+      console.error("deleteExperienceCMSItem error:", e);
+    }
+  },
 
   reorderExperienceCMSItems: async (items) => {
     set((state) => ({
@@ -855,6 +905,19 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
       }
     } catch (e) {
       console.error("addSelectedWorkCMSItem error:", e);
+    }
+
+    // Auto-sync project to Project Showcase track if not already present
+    const existingPSItems = get().projectShowcaseCMS?.items || [];
+    if (!existingPSItems.some((i) => i.projectId === itemData.projectId)) {
+      await get().addProjectShowcaseCMSItem({
+        projectId: itemData.projectId,
+        displayOrder: existingPSItems.length + 1,
+        visible: true,
+        showDescription: true,
+        showTechnologies: true,
+        showViewAction: true,
+      });
     }
   },
 
@@ -940,32 +1003,80 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
     }
   },
 
-  addProjectShowcaseCMSItem: (itemData) =>
+  addProjectShowcaseCMSItem: async (itemData) => {
+    const newItem = {
+      ...itemData,
+      id: `pscmsi-${Date.now()}`,
+      sectionId: get().projectShowcaseCMS?.id || "ps-cms-main",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const updatedItems = [...(get().projectShowcaseCMS?.items || []), newItem];
     set((state) => ({
       projectShowcaseCMS: {
         ...state.projectShowcaseCMS,
-        items: [
-          ...state.projectShowcaseCMS.items,
-          { ...itemData, id: `pscmsi-${Date.now()}`, sectionId: state.projectShowcaseCMS.id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        ],
+        items: updatedItems,
       },
-    })),
+    }));
+    try {
+      const res = await fetch("/api/admin/cms/composition", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sectionType: "PROJECT_SHOWCASE", items: updatedItems }),
+      });
+      if (res.ok) {
+        await get().fetchInitialData();
+      }
+    } catch (e) {
+      console.error("addProjectShowcaseCMSItem error:", e);
+    }
+  },
 
-  updateProjectShowcaseCMSItem: (id, itemData) =>
+  updateProjectShowcaseCMSItem: async (id, itemData) => {
+    const updatedItems = (get().projectShowcaseCMS?.items || []).map((i) =>
+      i.id === id ? { ...i, ...itemData } : i
+    );
     set((state) => ({
       projectShowcaseCMS: {
         ...state.projectShowcaseCMS,
-        items: state.projectShowcaseCMS.items.map((i) => (i.id === id ? { ...i, ...itemData } : i)),
+        items: updatedItems,
       },
-    })),
+    }));
+    try {
+      const res = await fetch("/api/admin/cms/composition", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sectionType: "PROJECT_SHOWCASE", items: updatedItems }),
+      });
+      if (res.ok) {
+        await get().fetchInitialData();
+      }
+    } catch (e) {
+      console.error("updateProjectShowcaseCMSItem error:", e);
+    }
+  },
 
-  deleteProjectShowcaseCMSItem: (id) =>
+  deleteProjectShowcaseCMSItem: async (id) => {
+    const updatedItems = (get().projectShowcaseCMS?.items || []).filter((i) => i.id !== id);
     set((state) => ({
       projectShowcaseCMS: {
         ...state.projectShowcaseCMS,
-        items: state.projectShowcaseCMS.items.filter((i) => i.id !== id),
+        items: updatedItems,
       },
-    })),
+    }));
+    try {
+      const res = await fetch("/api/admin/cms/composition", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sectionType: "PROJECT_SHOWCASE", items: updatedItems }),
+      });
+      if (res.ok) {
+        await get().fetchInitialData();
+      }
+    } catch (e) {
+      console.error("deleteProjectShowcaseCMSItem error:", e);
+    }
+  },
 
   reorderProjectShowcaseCMSItems: async (items) => {
     set((state) => ({
