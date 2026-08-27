@@ -28,8 +28,7 @@ The hero is a **padded shell**: the 3D canvas is inset (~3–4rem). Padded margi
 | **Press + drag** sphere (move past ~6px) | Drags the node (left-click); auto-spin pauses until release; then soft spring-back |
 | **Left-click + drag empty space** (move past ~6px) | Orbits the camera. Blocked while a node is pressed/dragged |
 | **Click empty canvas / Esc / card close** | Clears selection + card |
-| **Wheel / pinch on canvas** | Disabled — no zoom into spheres |
-| **Wheel / touch on padded margins** | Page scrolls to the next section (VisitorMode) |
+| **Wheel / trackpad anywhere on hero** | Naturally scrolls the page down to next section (not tied to 3D zoom) |
 | **Bottom “Scroll” cue** | Visual affordance in the lower padding; does not capture clicks |
 | **Idle** | Network **auto-spin** continues |
 

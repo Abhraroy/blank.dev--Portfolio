@@ -121,10 +121,10 @@ export default function HeroSection() {
               ease: "easeInOut",
             }}
           >
-            <FaUnlockAlt className="text-zinc-100" />
+            {/* <FaUnlockAlt className="text-zinc-100" /> */}
           </motion.span>
           <span className="font-mono text-[11px] font-semibold tracking-[0.28em] uppercase text-zinc-200 pl-[0.28em]">
-            Click to unlock  scroll
+            Click to scroll
           </span>
         </motion.button>
       ) : null}

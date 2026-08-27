@@ -160,23 +160,16 @@ export default function CameraManager({ cameraDistance }: CameraManagerProps) {
       pointerIdRef.current = null;
     };
 
-    // Block zoom on the canvas only — page scroll uses padded hero margins.
-    const blockZoom = (e: WheelEvent) => {
-      e.preventDefault();
-    };
-
     el.addEventListener("pointerdown", onDown);
     el.addEventListener("pointermove", onMove);
     el.addEventListener("pointerup", onUp);
     el.addEventListener("pointercancel", onUp);
-    el.addEventListener("wheel", blockZoom, { passive: false });
 
     return () => {
       el.removeEventListener("pointerdown", onDown);
       el.removeEventListener("pointermove", onMove);
       el.removeEventListener("pointerup", onUp);
       el.removeEventListener("pointercancel", onUp);
-      el.removeEventListener("wheel", blockZoom);
     };
   }, [gl]);
 
