@@ -9,6 +9,7 @@ let pluginRegistered = false;
 export function registerScrollTrigger() {
   if (typeof window === "undefined" || pluginRegistered) return;
   gsap.registerPlugin(ScrollTrigger);
+  ScrollTrigger.clearScrollMemory();
   pluginRegistered = true;
 }
 

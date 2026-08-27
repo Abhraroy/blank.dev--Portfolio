@@ -50,7 +50,7 @@ export const HERO_MOBILE = {
   ] satisfies HeroMobileSocial[],
 
   ctas: [
-    { label: "View Project", href: "/projects", variant: "primary" as const },
+    { label: "View Project", href: "/#work", variant: "primary" as const },
     { label: "Let's Talk", href: "/#contact", variant: "secondary" as const },
   ],
   typewriter: {
