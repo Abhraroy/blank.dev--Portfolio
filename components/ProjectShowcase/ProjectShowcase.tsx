@@ -192,12 +192,13 @@ export default function ProjectShowcase() {
     containerRef,
     trackRef,
     enabled: true,
+    dependencies: [dynamicProjects.length, dynamicProjects],
   });
 
   return (
     <section
       ref={containerRef}
-      id="work"
+      id="showcase"
       className="project-showcase relative z-10 w-full scroll-mt-24"
       aria-labelledby="showcase-heading"
     >
