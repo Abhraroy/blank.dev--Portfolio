@@ -4,12 +4,6 @@ import {
 
 
 
-console.log({
-	endpoint: process.env.CLOUDFLARE_R2_ENDPOINT,
-	bucket: process.env.CLOUDFLARE_R2_BUCKET,
-	hasAccessKey: !!process.env.CLOUDFLARE_R2_ACCESS_KEY_ID,
-	hasSecret: !!process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY,
-});
 
 export const s3 = new S3Client({
 	region: "auto", // Required by AWS SDK, not used by R2

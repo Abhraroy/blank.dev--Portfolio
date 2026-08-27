@@ -1,5 +1,3 @@
-import fs from "fs/promises";
-import path from "path";
 import { prisma } from "@/lib/prisma";
 import {
   getProjectBySlug,
@@ -10,9 +8,8 @@ import {
 /**
  * Reads or fetches the Case Study Markdown content for a given project slug.
  * Priority:
- * 1. project_md_url from Prisma DB (Remote URL or local uploaded file path).
- * 2. Local file content/projects/[slug].md.
- * 3. Structured fallback Markdown generated from DB Case Study fields (oneLiner, challenge, solution, impact, highlights).
+ * 1. project_md_url from Prisma DB (Remote URL e.g. Cloudflare R2).
+ * 2. Structured fallback Markdown generated from DB Case Study fields (oneLiner, challenge, solution, impact, highlights).
  */
 export async function getProjectMarkdown(slug: string): Promise<string> {
   // 1. Check Prisma DB for project and project_md_url
@@ -29,7 +26,7 @@ export async function getProjectMarkdown(slug: string): Promise<string> {
   if (dbProject?.project_md_url) {
     const mdUrl = dbProject.project_md_url.trim();
 
-    // If Remote URL
+    // If Remote URL (Cloudflare R2 or CDN)
     if (mdUrl.startsWith("http://") || mdUrl.startsWith("https://")) {
       try {
         const res = await fetch(mdUrl, { next: { revalidate: 60 } });
@@ -41,30 +38,9 @@ export async function getProjectMarkdown(slug: string): Promise<string> {
         console.error(`Failed to fetch remote markdown from ${mdUrl}:`, err);
       }
     }
-
-    // If local uploaded file path
-    const localUploadPath = mdUrl.startsWith("/")
-      ? path.join(process.cwd(), "public", mdUrl)
-      : path.join(process.cwd(), mdUrl);
-
-    try {
-      const fileContent = await fs.readFile(localUploadPath, "utf-8");
-      if (fileContent.trim()) return fileContent;
-    } catch {
-      // Continue to next check
-    }
   }
 
-  // 2. Check content/projects/[slug].md
-  const defaultFilePath = path.join(process.cwd(), "content", "projects", `${slug}.md`);
-  try {
-    const fileContent = await fs.readFile(defaultFilePath, "utf-8");
-    if (fileContent.trim()) return fileContent;
-  } catch {
-    // Continue to fallback
-  }
-
-  // 3. Fallback: generate structured Markdown from DB or static config Case Study fields
+  // 2. Fallback: generate structured Markdown from DB or static config Case Study fields
   const modeContent = dbProject?.modeContents?.[0];
   const staticProj = getProjectBySlug(slug);
 
