@@ -8,6 +8,7 @@ import {
   SELECTED_PROJECTS as FALLBACK_PROJECTS,
   SELECTED_WORK,
   type SelectedProject,
+  formatMetricNumber,
 } from "./selectedWork.config";
 import { useAdminStore } from "@/app/admin/_components/store";
 
@@ -25,12 +26,26 @@ export default function SelectedWork() {
   const { projects, projectHighlights, selectedWorkCMS, activeModeId } = useAdminStore();
 
   const dynamicProjects = useMemo<SelectedProject[]>(() => {
-    if (!selectedWorkCMS || selectedWorkCMS.items === undefined) {
+    if (!selectedWorkCMS || !selectedWorkCMS.items || selectedWorkCMS.items.length === 0) {
       if (projects.length > 0) {
         return projects.map((proj, idx): SelectedProject => {
           const modeContent =
             proj.modeContents?.find((m) => m.portfolioModeId === activeModeId) ||
             proj.modeContents?.[0];
+
+          const currencySymbol =
+            modeContent?.currency !== undefined && modeContent?.currency !== null
+              ? modeContent.currency
+              : "$";
+          const userMetric = formatMetricNumber(modeContent?.project_user_count);
+          const revMetric = formatMetricNumber(modeContent?.project_revenue, currencySymbol);
+          const compiledMetrics: { label: string }[] = [];
+          if (userMetric) compiledMetrics.push({ label: `${userMetric} Users` });
+          if (revMetric) compiledMetrics.push({ label: `${revMetric} Revenue` });
+          if (modeContent?.project_highlights && modeContent.project_highlights.length > 0) {
+            compiledMetrics.push(...modeContent.project_highlights.map((h) => ({ label: h })));
+          }
+
           return {
             id: proj.id,
             slug: proj.slug,
@@ -38,11 +53,19 @@ export default function SelectedWork() {
             name: proj.project_name || "Placeholder",
             oneLiner: modeContent?.project_description || proj.project_name || "Placeholder",
             techStack: proj.project_tech && proj.project_tech.length > 0 ? proj.project_tech : ["Placeholder"],
-            metrics: (modeContent?.project_highlights || []).map((h) => ({ label: h })),
-            challenge: modeContent?.project_description || "Placeholder",
-            solution: `Built with ${proj.project_tech?.join(", ") || "Placeholder"}.`,
-            impact: `Active ${proj.project_status || "Placeholder"} product.`,
-            technicalHighlights: modeContent?.project_highlights || ["Placeholder"],
+            metrics: compiledMetrics.length > 0 ? compiledMetrics : [{ label: "Production Scale" }],
+            challenge: modeContent?.challenge || modeContent?.project_description || "Placeholder",
+            solution: modeContent?.solution || `Built with ${proj.project_tech?.join(", ") || "modern tech stack"}.`,
+            impact: modeContent?.impact || `Active ${proj.project_status || "Placeholder"} product.`,
+            technicalHighlights: modeContent?.project_highlights && modeContent.project_highlights.length > 0
+              ? modeContent.project_highlights
+              : ["High throughput architecture", "Scalable data pipeline"],
+            userCount: modeContent?.project_user_count ?? null,
+            revenue: modeContent?.project_revenue ?? null,
+            currency: currencySymbol,
+            extraNotes: modeContent?.extra_notes ?? null,
+            githubUrl: proj.project_github || undefined,
+            liveUrl: proj.project_url || undefined,
             offset: idx % 2 === 0 ? "up" : "down",
           };
         });
@@ -99,6 +122,24 @@ export default function SelectedWork() {
         proj.modeContents?.find((m) => m.portfolioModeId === activeModeId) ||
         proj.modeContents?.[0];
 
+      const currencySymbol =
+        modeContent?.currency !== undefined && modeContent?.currency !== null
+          ? modeContent.currency
+          : "$";
+      const userMetric = formatMetricNumber(modeContent?.project_user_count);
+      const revMetric = formatMetricNumber(modeContent?.project_revenue, currencySymbol);
+      const compiledMetrics: { label: string }[] = [];
+      if (userMetric) compiledMetrics.push({ label: `${userMetric} Users` });
+      if (revMetric) compiledMetrics.push({ label: `${revMetric} Revenue` });
+      if (highlights.length > 0) {
+        compiledMetrics.push(...highlights);
+      } else if (modeContent?.project_highlights && modeContent.project_highlights.length > 0) {
+        compiledMetrics.push(...modeContent.project_highlights.map((h) => ({ label: h })));
+      }
+      if (compiledMetrics.length === 0) {
+        compiledMetrics.push({ label: "Production Scale" });
+      }
+
       result.push({
         id: proj.id,
         slug: proj.slug,
@@ -106,18 +147,66 @@ export default function SelectedWork() {
         name: proj.project_name || "Placeholder",
         oneLiner: modeContent?.project_description || proj.project_name || "Placeholder",
         techStack: proj.project_tech && proj.project_tech.length > 0 ? proj.project_tech : ["Placeholder"],
-        metrics: highlights.length > 0
-          ? highlights
-          : (modeContent?.project_highlights || ["Placeholder"]).map((h) => ({ label: h })),
+        metrics: compiledMetrics,
         challenge: modeContent?.challenge || modeContent?.project_description || "No challenge statement configured.",
         solution: modeContent?.solution || `Built with ${proj.project_tech?.join(", ") || "modern tech stack"}.`,
         impact: modeContent?.impact || `Active ${proj.project_status || "production"} product.`,
         technicalHighlights: modeContent?.project_highlights && modeContent.project_highlights.length > 0
           ? modeContent.project_highlights
-          : ["Placeholder"],
+          : ["High throughput architecture", "Zero-downtime automated deployment"],
+        userCount: modeContent?.project_user_count ?? null,
+        revenue: modeContent?.project_revenue ?? null,
+        currency: currencySymbol,
+        extraNotes: modeContent?.extra_notes ?? null,
+        githubUrl: proj.project_github || undefined,
+        liveUrl: proj.project_url || undefined,
         offset: item.offset as "up" | "down" | undefined,
       });
     });
+
+    if (result.length === 0 && projects.length > 0) {
+      return projects.map((proj, idx): SelectedProject => {
+        const modeContent =
+          proj.modeContents?.find((m) => m.portfolioModeId === activeModeId) ||
+          proj.modeContents?.[0];
+
+        const currencySymbol =
+          modeContent?.currency !== undefined && modeContent?.currency !== null
+            ? modeContent.currency
+            : "$";
+        const userMetric = formatMetricNumber(modeContent?.project_user_count);
+        const revMetric = formatMetricNumber(modeContent?.project_revenue, currencySymbol);
+        const compiledMetrics: { label: string }[] = [];
+        if (userMetric) compiledMetrics.push({ label: `${userMetric} Users` });
+        if (revMetric) compiledMetrics.push({ label: `${revMetric} Revenue` });
+        if (modeContent?.project_highlights && modeContent.project_highlights.length > 0) {
+          compiledMetrics.push(...modeContent.project_highlights.map((h) => ({ label: h })));
+        }
+
+        return {
+          id: proj.id,
+          slug: proj.slug,
+          number: (idx + 1).toString().padStart(2, "0"),
+          name: proj.project_name || "Placeholder",
+          oneLiner: modeContent?.project_description || proj.project_name || "Placeholder",
+          techStack: proj.project_tech && proj.project_tech.length > 0 ? proj.project_tech : ["Placeholder"],
+          metrics: compiledMetrics.length > 0 ? compiledMetrics : [{ label: "Production Scale" }],
+          challenge: modeContent?.challenge || modeContent?.project_description || "Placeholder",
+          solution: modeContent?.solution || `Built with ${proj.project_tech?.join(", ") || "modern tech stack"}.`,
+          impact: modeContent?.impact || `Active ${proj.project_status || "Placeholder"} product.`,
+          technicalHighlights: modeContent?.project_highlights && modeContent.project_highlights.length > 0
+            ? modeContent.project_highlights
+            : ["High throughput architecture", "Scalable data pipeline"],
+          userCount: modeContent?.project_user_count ?? null,
+          revenue: modeContent?.project_revenue ?? null,
+          currency: currencySymbol,
+          extraNotes: modeContent?.extra_notes ?? null,
+          githubUrl: proj.project_github || undefined,
+          liveUrl: proj.project_url || undefined,
+          offset: idx % 2 === 0 ? "up" : "down",
+        };
+      });
+    }
 
     return result;
   }, [projects, projectHighlights, selectedWorkCMS, activeModeId]);

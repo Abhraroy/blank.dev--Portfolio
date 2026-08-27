@@ -54,6 +54,8 @@ export default function ExperienceFactsPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [currentlyWorking, setCurrentlyWorking] = useState(false);
+  const [experienceImage, setExperienceImage] = useState("");
+  const [experienceTech, setExperienceTech] = useState<string[]>([]);
 
   // Metric Form state per experience
   const [newMetricExpId, setNewMetricExpId] = useState<string>("");
@@ -73,6 +75,8 @@ export default function ExperienceFactsPage() {
     setStartDate(new Date().toISOString().slice(0, 7));
     setEndDate("");
     setCurrentlyWorking(true);
+    setExperienceImage("");
+    setExperienceTech([]);
 
     setIsModalOpen(true);
   };
@@ -86,6 +90,8 @@ export default function ExperienceFactsPage() {
     setStartDate(exp.start_date ? exp.start_date.slice(0, 10) : "");
     setEndDate(exp.end_date ? exp.end_date.slice(0, 10) : "");
     setCurrentlyWorking(exp.currently_working);
+    setExperienceImage(exp.experience_image || "");
+    setExperienceTech(exp.experience_tech || []);
 
     setIsModalOpen(true);
   };
@@ -103,6 +109,8 @@ export default function ExperienceFactsPage() {
         start_date: startDate,
         end_date: currentlyWorking ? null : endDate || null,
         currently_working: currentlyWorking,
+        experience_image: experienceImage || null,
+        experience_tech: experienceTech,
       });
     } else {
       addExperience({
@@ -113,6 +121,8 @@ export default function ExperienceFactsPage() {
         start_date: startDate,
         end_date: currentlyWorking ? null : endDate || null,
         currently_working: currentlyWorking,
+        experience_image: experienceImage || null,
+        experience_tech: experienceTech,
       });
     }
 
@@ -252,6 +262,20 @@ export default function ExperienceFactsPage() {
                       </span>
                     )}
                   </div>
+
+                  {/* Tech Stack Pills */}
+                  {exp.experience_tech && exp.experience_tech.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2.5">
+                      {exp.experience_tech.map((tech) => (
+                        <span
+                          key={tech}
+                          className="px-2 py-0.5 rounded-md text-[10px] bg-white/5 text-zinc-300 border border-white/10 font-mono"
+                        >
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-1">
@@ -503,6 +527,26 @@ export default function ExperienceFactsPage() {
                   />
                 </div>
               </div>
+
+              <div className="space-y-1">
+                <label className="block text-[10px] uppercase text-zinc-400">
+                  Experience Logo / Image (Upload)
+                </label>
+                <input
+                  type="text"
+                  value={experienceImage}
+                  onChange={(e) => setExperienceImage(e.target.value)}
+                  placeholder="Image URL"
+                  className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:border-white/30 focus:outline-none"
+                />
+              </div>
+
+              <ArrayInput
+                label="Tech Stack (`experience_tech`)"
+                placeholder="Add technology e.g. React, Node.js..."
+                items={experienceTech}
+                onChange={setExperienceTech}
+              />
             </div>
 
             <div className="pt-4 flex justify-end gap-3 border-t border-white/10">

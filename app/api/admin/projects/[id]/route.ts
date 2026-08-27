@@ -76,6 +76,8 @@ export async function PUT(
           project_highlights: modeContent.project_highlights || [],
           project_user_count: modeContent.project_user_count ?? null,
           project_revenue: modeContent.project_revenue ?? null,
+          currency: modeContent.currency ?? null,
+          extra_notes: modeContent.extra_notes ?? null,
         },
         create: {
           projectId: id,
@@ -87,6 +89,8 @@ export async function PUT(
           project_highlights: modeContent.project_highlights || [],
           project_user_count: modeContent.project_user_count ?? null,
           project_revenue: modeContent.project_revenue ?? null,
+          currency: modeContent.currency ?? null,
+          extra_notes: modeContent.extra_notes ?? null,
         },
       });
     }

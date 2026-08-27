@@ -132,6 +132,8 @@ model ProjectModeContent {
   project_highlights   String[]
   project_user_count   Int?
   project_revenue      Int?
+  currency             String?  @default("$")
+  extra_notes          String?
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
@@ -156,6 +158,8 @@ model Experience {
   start_date        DateTime
   end_date          DateTime?
   currently_working Boolean        @default(false)
+  experience_image  String?
+  experience_tech   String[]       @default([])
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
 
@@ -177,6 +181,7 @@ model ExperienceModeContent {
   id                     String   @id @default(uuid())
   experienceId           String
   portfolioModeId        String
+  experience_summary     String?
   experience_description String?
   experience_highlights  String[]
   createdAt              DateTime @default(now())

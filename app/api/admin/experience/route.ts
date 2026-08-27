@@ -29,6 +29,8 @@ export async function POST(req: NextRequest) {
       start_date,
       end_date,
       currently_working,
+      experience_image,
+      experience_tech,
       metrics,
       achievements,
     } = body;
@@ -42,6 +44,8 @@ export async function POST(req: NextRequest) {
         start_date: start_date ? new Date(start_date) : new Date(),
         end_date: end_date ? new Date(end_date) : null,
         currently_working: currently_working ?? false,
+        experience_image: experience_image || null,
+        experience_tech: Array.isArray(experience_tech) ? experience_tech : [],
         ...(metrics && metrics.length > 0
           ? {
               metrics: {

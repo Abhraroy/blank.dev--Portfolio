@@ -17,7 +17,7 @@ export const HERO_MOBILE = {
     label: "Available for work",
   },
 
-  skillPrefix: "I build with ",
+  skillPrefix: "I build software that solves real problems.",
   skills: [
     "Next.js",
     "React",
@@ -28,7 +28,7 @@ export const HERO_MOBILE = {
   ],
 
   /** Single line below the typewriter — edit this anytime. */
-  tagline: "Full-stack developer crafting fast, polished web experiences.",
+  tagline: "From AI-powered workflows to complete web applications, I turn ideas and messy problems into useful software.",
 
   /** Text social handles below the tagline — edit handles & hrefs anytime. */
   socials: [

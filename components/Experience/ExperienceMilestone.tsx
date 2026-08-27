@@ -43,21 +43,29 @@ function ExperienceMilestone({
             aria-hidden
           />
           <span className="min-w-0 flex-1 space-y-1">
-            <span className="block font-mono text-[10px] tracking-[0.28em] text-zinc-500 uppercase">
-              {milestone.year}
-            </span>
-            <span
-              className={`block font-mono text-base transition-colors duration-300 ${
-                isExpanded ? "text-zinc-50" : "text-zinc-300"
-              }`}
-            >
-              {milestone.title}
-            </span>
-            <span className="block text-sm text-zinc-500">{milestone.summary}</span>
+            {milestone.showYear !== false && milestone.year ? (
+              <span className="block font-mono text-[10px] tracking-[0.28em] text-zinc-500 uppercase">
+                {milestone.year}
+              </span>
+            ) : null}
+            {milestone.showRole !== false && milestone.title ? (
+              <span
+                className={`block font-mono text-base transition-colors duration-300 ${
+                  isExpanded ? "text-zinc-50" : "text-zinc-300"
+                }`}
+              >
+                {milestone.title}
+              </span>
+            ) : null}
+            {milestone.showCompany !== false && milestone.summary ? (
+              <span className="block text-sm text-zinc-500">{milestone.summary}</span>
+            ) : null}
           </span>
           <span
-            className={`mt-1 shrink-0 text-zinc-500 transition-transform duration-300 ease-out ${
-              isExpanded ? "rotate-180" : ""
+            className={`mt-1 shrink-0 rounded-md border border-white/10 bg-white/5 p-1 transition-all duration-300 ease-out ${
+              isExpanded
+                ? "rotate-180 border-white/30 bg-white/15 text-white"
+                : "text-zinc-200 group-hover:text-white"
             }`}
             aria-hidden
           >
@@ -65,7 +73,7 @@ function ExperienceMilestone({
               <path
                 d="M3 5.5L7 9.5L11 5.5"
                 stroke="currentColor"
-                strokeWidth="1.25"
+                strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
@@ -114,15 +122,21 @@ function ExperienceMilestone({
       </div>
 
       <div className="min-w-0 flex-1 pl-1">
-        <p className="font-mono text-[10px] tracking-[0.28em] text-zinc-600 uppercase">
-          {milestone.year}
-        </p>
-        <h3 className="mt-1.5 font-mono text-lg text-zinc-400 sm:text-xl">
-          {milestone.title}
-        </h3>
-        <p className="mt-2 max-w-sm text-sm leading-relaxed text-zinc-600">
-          {milestone.summary}
-        </p>
+        {milestone.showYear !== false && milestone.year ? (
+          <p className="font-mono text-[10px] tracking-[0.28em] text-zinc-600 uppercase">
+            {milestone.year}
+          </p>
+        ) : null}
+        {milestone.showRole !== false && milestone.title ? (
+          <h3 className="mt-1.5 font-mono text-lg text-zinc-400 sm:text-xl">
+            {milestone.title}
+          </h3>
+        ) : null}
+        {milestone.showCompany !== false && milestone.summary ? (
+          <p className="mt-2 max-w-sm text-sm leading-relaxed text-zinc-600">
+            {milestone.summary}
+          </p>
+        ) : null}
       </div>
     </div>
   );

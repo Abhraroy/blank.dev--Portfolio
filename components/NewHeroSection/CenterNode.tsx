@@ -37,7 +37,7 @@ export default function CenterNode({ size }: CenterNodeProps) {
   const geometry = useMemo(() => getCenterGeometry(), []);
   const { center } = MATERIALS;
   const heroNodesCMS = useAdminStore((s) => s.heroNodesCMS);
-  const centerLabel = heroNodesCMS?.centerNodeLabel || "Placeholder";
+  const centerLabel = heroNodesCMS?.centerNodeLabel || "blankdev";
   const rawLogoUrl = heroNodesCMS?.centerLogoUrl || CENTER_NODE.logoUrl;
   const centerLogo = rawLogoUrl
     ? rawLogoUrl.startsWith("/") || rawLogoUrl.startsWith("http") || rawLogoUrl.startsWith("data:")

@@ -45,16 +45,7 @@ export function useFibonacciSphere(
         ctaFontSize: item.ctaFontSize || undefined,
       }));
     } else {
-      skills = [
-        {
-          id: "ph-node-1",
-          label: "Placeholder",
-          title: "Placeholder Node",
-          description: "Placeholder node description",
-          techStack: ["Placeholder"],
-          cta: { label: "Placeholder", href: "/#work" },
-        },
-      ];
+      skills = getSkillsForCount(count);
     }
 
     const positions = fibonacciSphere(skills.length, radius);

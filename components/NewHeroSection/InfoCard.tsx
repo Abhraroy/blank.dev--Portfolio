@@ -52,6 +52,55 @@ export default function InfoCard({ card, onClose }: InfoCardProps) {
       sprite
     >
       <AnimatePresence mode="wait">
+        {/* ================================================================= */}
+        {/* NEW MINIMAL INFO CARD DESIGN (Heading & Description Only)          */}
+        {/* ================================================================= */}
+        <motion.div
+          key={card.nodeId}
+          initial={{ opacity: 0, y: 8, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 6, scale: 0.97 }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          className="pointer-events-auto flex flex-col overflow-hidden rounded-xl border border-white/15 bg-zinc-950/90 shadow-[0_12px_32px_rgba(0,0,0,0.5)] backdrop-blur-md"
+          style={{
+            width: cardWidth,
+            padding,
+            gap: INFO_CARD_CONFIG.gap,
+          }}
+          data-network-card="true"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-start justify-between gap-2">
+            <h3
+              className="font-mono font-semibold tracking-wide text-zinc-50"
+              style={{ fontSize: titleFontSize }}
+            >
+              {card.data.title}
+            </h3>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-md border border-white/10 px-1.5 py-0.5 text-zinc-400 transition hover:bg-white/5 hover:text-zinc-200"
+              style={{ fontSize: escButtonFontSize }}
+              aria-label="Close"
+            >
+              Esc
+            </button>
+          </div>
+
+          <p
+            className="leading-relaxed text-zinc-400"
+            style={{ fontSize: descriptionFontSize }}
+          >
+            {card.data.description}
+          </p>
+        </motion.div>
+
+        {/* ================================================================= */}
+        {/* PRESERVED PREVIOUS INFO CARD DESIGN (COMMENTED OUT)               */}
+        {/* ================================================================= */}
+        {/*
         <motion.div
           key={card.nodeId}
           initial={{ opacity: 0, y: 10, scale: 0.96 }}
@@ -164,6 +213,7 @@ export default function InfoCard({ card, onClose }: InfoCardProps) {
             </Link>
           </div>
         </motion.div>
+        */}
       </AnimatePresence>
     </Html>
   );

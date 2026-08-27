@@ -81,7 +81,7 @@ export default function FloatingContactButton() {
             aria-label="Scroll back to top"
             className="group flex items-center gap-1.5 rounded-full border border-white/20 bg-[#09090b]/85 px-4 py-2.5 font-mono text-xs font-semibold tracking-wider text-zinc-100 uppercase backdrop-blur-xl transition-all hover:border-white/40 hover:bg-white/15 hover:text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.22)] cursor-pointer"
           >
-            <FiArrowUp className="h-4 w-4 text-zinc-300 transition-transform group-hover:-translate-y-0.5" />
+            <FiArrowUp className="h-4 w-4 text-zinc-100 transition-transform group-hover:-translate-y-0.5" />
             <span>Top</span>
           </motion.button>
         )}

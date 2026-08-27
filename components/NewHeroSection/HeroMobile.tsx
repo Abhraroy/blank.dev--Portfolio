@@ -66,23 +66,24 @@ export default function HeroMobile() {
           <span className="block leading-[0.95]">{lastName}</span>
         </h1>
 
-        <p className="flex gap-2 items-center justify-center font-mono text-sm leading-none text-zinc-400">
-          <span className="shrink-0">{HERO_MOBILE.skillPrefix}</span>
+        <div className="flex flex-col items-center justify-center gap-2.5 font-mono text-sm text-zinc-400 text-center max-w-sm px-2">
+          <span className="leading-relaxed">{HERO_MOBILE.skillPrefix}</span>
           <span
-            className="inline-flex h-7 shrink-0 items-center justify-start overflow-hidden rounded-md border border-white/10 bg-white/5 px-2 text-left leading-none text-zinc-200 backdrop-blur-sm"
-            style={{ width: `${typeSlotWidth}ch`, minWidth: `${typeSlotWidth}ch` }}
+            className="inline-flex h-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 px-5 text-center leading-none text-zinc-200 backdrop-blur-sm shadow-sm"
+            style={{ minWidth: `${Math.max(typeSlotWidth + 4, 16)}ch` }}
           >
-            <span className="truncate leading-none">{displayText}</span>
+            <span className="leading-none font-medium whitespace-nowrap">
+              {displayText || "\u00A0"}
+            </span>
             <span
-              className="hero-mobile-cursor ml-0.5 inline-block h-[1em] w-[0.55ch] shrink-0 border-r-2 border-zinc-400"
+              className="hero-mobile-cursor ml-1 inline-block h-[1.1em] w-[0.55ch] shrink-0 border-r-2 border-zinc-400"
               aria-hidden
             />
           </span>
           <span className="sr-only" aria-live="polite">
-            {HERO_MOBILE.skillPrefix}
-            {announcedSkill}
+            {HERO_MOBILE.skillPrefix} {announcedSkill}
           </span>
-        </p>
+        </div>
 
         <p className="max-w-xs text-sm leading-relaxed text-zinc-400">
           {dynamicTagline}
@@ -110,7 +111,7 @@ export default function HeroMobile() {
         </div>
       </div>
 
-      <div className="flex w-full max-w-sm flex-wrap items-center justify-center gap-3">
+      <div className="flex w-full max-w-sm flex-wrap items-center justify-center gap-3 px-2">
         {HERO_MOBILE.ctas.map((cta) => (
           <Link
             key={cta.href}
@@ -132,8 +133,8 @@ export default function HeroMobile() {
             }}
             className={
               cta.variant === "primary"
-                ? "cta-highlight-get-in-touch cursor-pointer inline-flex flex-1 items-center justify-center rounded-xl border border-white/15 bg-white/10 px-5 py-2.5 font-mono text-xs tracking-[0.18em] text-zinc-50 uppercase transition hover:border-white/30 hover:bg-white/15 sm:flex-none"
-                : "cursor-pointer inline-flex flex-1 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 font-mono text-xs tracking-[0.18em] text-zinc-100 uppercase transition hover:border-white/25 hover:bg-white/10 sm:flex-none"
+                ? "cta-highlight-get-in-touch cursor-pointer inline-flex flex-1 min-w-[140px] items-center justify-center rounded-xl border border-white/15 bg-white/10 px-6 py-3 font-mono text-xs tracking-[0.18em] text-zinc-50 uppercase whitespace-nowrap transition hover:border-white/30 hover:bg-white/15 sm:flex-none"
+                : "cursor-pointer inline-flex flex-1 min-w-[140px] items-center justify-center rounded-xl border border-white/10 bg-white/5 px-6 py-3 font-mono text-xs tracking-[0.18em] text-zinc-100 uppercase whitespace-nowrap transition hover:border-white/25 hover:bg-white/10 sm:flex-none"
             }
           >
             {cta.label}

@@ -4,6 +4,7 @@ import { Canvas, useThree } from "@react-three/fiber";
 import { Suspense, useEffect, useRef, useState } from "react";
 import LightingSystem from "./LightingSystem";
 import NetworkSphere from "./NetworkSphere";
+import { IS_HERO_RIGHT_CLICK_ENABLED } from "./config/scene.config";
 import { useInteractionStore } from "@/zustand";
 import type { BreakpointConfig, BreakpointKey } from "./types/network";
 import { attachPointerRouter } from "./utils/pointerRouter";
@@ -109,6 +110,11 @@ export default function HeroScene({ config, breakpointKey }: HeroSceneProps) {
         style={{ background: "transparent", touchAction: "none" }}
         frameloop={active ? "always" : "never"}
         resize={{ scroll: false }}
+        onContextMenu={(e) => {
+          if (IS_HERO_RIGHT_CLICK_ENABLED) {
+            e.preventDefault();
+          }
+        }}
         onPointerMissed={() => {
           const state = useInteractionStore.getState();
           if (state.isDragging) return;

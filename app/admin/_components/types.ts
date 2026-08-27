@@ -48,6 +48,8 @@ export interface ProjectModeContent {
   project_highlights: string[];
   project_user_count?: number | null;
   project_revenue?: number | null;
+  currency?: string | null;
+  extra_notes?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -77,6 +79,7 @@ export interface ExperienceModeContent {
   id: string;
   experienceId: string;
   portfolioModeId: string;
+  experience_summary?: string | null;
   experience_description?: string | null;
   experience_highlights: string[];
   createdAt: string;
@@ -92,9 +95,13 @@ export interface Experience {
   start_date: string;
   end_date?: string | null;
   currently_working: boolean;
+  experience_image?: string | null;
+  experience_tech: string[];
   createdAt: string;
   updatedAt: string;
   modeContents?: ExperienceModeContent[];
+  metrics?: ExperienceMetricData[];
+  achievements?: ExperienceAchievementData[];
 }
 
 // 4. My Details & Mode Content

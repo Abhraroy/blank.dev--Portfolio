@@ -29,6 +29,8 @@ interface FormState {
   modeHighlights: string;
   modeUserCount: number | "";
   modeRevenue: number | "";
+  modeCurrency: string;
+  modeNotes: string;
   // Showcase CMS Specific Settings
   showDescription: boolean;
   showTechnologies: boolean;
@@ -45,6 +47,8 @@ const defaultFormState: FormState = {
   modeHighlights: "",
   modeUserCount: "",
   modeRevenue: "",
+  modeCurrency: "$",
+  modeNotes: "",
   showDescription: true,
   showTechnologies: true,
   showViewAction: true,
@@ -210,6 +214,8 @@ export default function CMSProjectShowcasePage() {
     const modeContent = proj.modeContents?.find((m) => m.portfolioModeId === modeId) || proj.modeContents?.[0];
     const uCount: number | "" = typeof modeContent?.project_user_count === "number" ? modeContent.project_user_count : "";
     const rev: number | "" = typeof modeContent?.project_revenue === "number" ? modeContent.project_revenue : "";
+    const rawHighlights = modeContent?.project_highlights || [];
+    const formattedHighlights = rawHighlights.length > 0 ? rawHighlights.map((h) => `• ${h}`).join("\n") : "";
 
     return {
       modeTabId: modeId || activeModeId || modes[0]?.id || "",
@@ -217,9 +223,11 @@ export default function CMSProjectShowcasePage() {
       modeChallenge: modeContent?.challenge || "",
       modeSolution: modeContent?.solution || "",
       modeImpact: modeContent?.impact || "",
-      modeHighlights: (modeContent?.project_highlights || []).join(", "),
+      modeHighlights: formattedHighlights,
       modeUserCount: uCount,
       modeRevenue: rev,
+      modeCurrency: modeContent?.currency !== undefined && modeContent?.currency !== null ? modeContent.currency : "$",
+      modeNotes: modeContent?.extra_notes || "",
     };
   };
 
@@ -288,7 +296,7 @@ export default function CMSProjectShowcasePage() {
     }
     const targetProjectId = formState.projectId;
     if (formState.modeTabId) {
-      const modeHlList = formState.modeHighlights.split(",").map((h) => h.trim()).filter(Boolean);
+      const modeHlList = parseBullets(formState.modeHighlights);
       await updateProjectModeContent(targetProjectId, formState.modeTabId, {
         project_description: formState.modeDescription || null,
         challenge: formState.modeChallenge || null,
@@ -297,6 +305,8 @@ export default function CMSProjectShowcasePage() {
         project_highlights: modeHlList,
         project_user_count: formState.modeUserCount !== "" ? Number(formState.modeUserCount) : null,
         project_revenue: formState.modeRevenue !== "" ? Number(formState.modeRevenue) : null,
+        currency: formState.modeCurrency || null,
+        extra_notes: formState.modeNotes || null,
       });
     }
     await addProjectShowcaseCMSItem({
@@ -316,7 +326,7 @@ export default function CMSProjectShowcasePage() {
     e.preventDefault();
     if (!editingItem) return;
     if (formState.modeTabId) {
-      const modeHlList = formState.modeHighlights.split(",").map((h) => h.trim()).filter(Boolean);
+      const modeHlList = parseBullets(formState.modeHighlights);
       await updateProjectModeContent(editingItem.project.id, formState.modeTabId, {
         project_description: formState.modeDescription || null,
         challenge: formState.modeChallenge || null,
@@ -325,6 +335,8 @@ export default function CMSProjectShowcasePage() {
         project_highlights: modeHlList,
         project_user_count: formState.modeUserCount !== "" ? Number(formState.modeUserCount) : null,
         project_revenue: formState.modeRevenue !== "" ? Number(formState.modeRevenue) : null,
+        currency: formState.modeCurrency || null,
+        extra_notes: formState.modeNotes || null,
       });
     }
     if (editingItem.cmsItem) {
@@ -637,6 +649,13 @@ export default function CMSProjectShowcasePage() {
                       placeholder="e.g. Achieved 99.9% uptime"
                     />
 
+                    <BulletListInput
+                      label="Extra Notes / Key Takeaways"
+                      value={formState.modeNotes}
+                      onChange={(v) => setFormState({ ...formState, modeNotes: v })}
+                      placeholder="e.g. Architecture decisions, production trade-offs..."
+                    />
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div>
                         <label className="block text-[10px] uppercase text-zinc-500 mb-1.5">User Count (Optional)</label>
@@ -647,14 +666,53 @@ export default function CMSProjectShowcasePage() {
                           className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-zinc-100 focus:border-indigo-500"
                         />
                       </div>
-                      <div>
-                        <label className="block text-[10px] uppercase text-zinc-500 mb-1.5">Revenue (Optional)</label>
-                        <input
-                          type="number"
-                          value={formState.modeRevenue}
-                          onChange={(e) => setFormState({ ...formState, modeRevenue: e.target.value ? Number(e.target.value) : "" })}
-                          className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-zinc-100 focus:border-indigo-500"
-                        />
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <label className="block text-[10px] uppercase text-zinc-500">Revenue (Optional)</label>
+                          <div className="flex items-center gap-1">
+                            {["$", "₹", "€", "£"].map((curr) => (
+                              <button
+                                key={curr}
+                                type="button"
+                                onClick={() => setFormState({ ...formState, modeCurrency: curr })}
+                                className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition ${
+                                  formState.modeCurrency === curr
+                                    ? "bg-emerald-500 text-zinc-950 font-bold"
+                                    : "bg-white/5 text-zinc-400 hover:text-white"
+                                }`}
+                              >
+                                {curr}
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() => setFormState({ ...formState, modeCurrency: "" })}
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition ${
+                                formState.modeCurrency === ""
+                                  ? "bg-emerald-500 text-zinc-950 font-bold"
+                                  : "bg-white/5 text-zinc-400 hover:text-white"
+                              }`}
+                            >
+                              None
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="Curr ($, ₹)"
+                            value={formState.modeCurrency}
+                            onChange={(e) => setFormState({ ...formState, modeCurrency: e.target.value })}
+                            className="w-20 rounded-xl border border-white/10 bg-zinc-900 px-2 py-3 text-xs text-center text-zinc-100 placeholder-zinc-500 focus:border-emerald-500 font-mono"
+                          />
+                          <input
+                            type="number"
+                            placeholder="e.g. 50000"
+                            value={formState.modeRevenue}
+                            onChange={(e) => setFormState({ ...formState, modeRevenue: e.target.value ? Number(e.target.value) : "" })}
+                            className="flex-1 rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-zinc-100 focus:border-indigo-500"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>

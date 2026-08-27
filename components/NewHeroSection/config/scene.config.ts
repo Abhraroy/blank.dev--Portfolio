@@ -139,6 +139,16 @@ export const HIT_SPHERE_SEGMENTS = {
 export const SCENE_BG = "#09090b" as const;
 
 /**
+ * Feature flag for right-click interaction on skill nodes.
+ * When enabled (NEXT_PUBLIC_ENABLE_HERO_RIGHT_CLICK="true" or "1"):
+ * - Right-click opens the node's InfoCard (preserving left-click for dragging / orbiting).
+ * - When disabled (default): Left-click opens the InfoCard.
+ */
+export const IS_HERO_RIGHT_CLICK_ENABLED =
+  process.env.NEXT_PUBLIC_ENABLE_HERO_RIGHT_CLICK === "true" ||
+  process.env.NEXT_PUBLIC_ENABLE_HERO_RIGHT_CLICK === "1";
+
+/**
  * Builds the initial camera pose for a given orbit distance.
  *
  * @param distance - Distance from origin along +Z (from breakpoint `cameraDistance`)
@@ -149,3 +159,4 @@ export function defaultCameraTarget(distance: number): CameraTarget {
     lookAt: CAMERA.defaultLookAt,
   };
 }
+

@@ -1,9 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
 import SkillItem from "./SkillItem";
-import { SKILLS, resolveSkillIcon, type Skill } from "./skills.config";
-import { useAdminStore } from "@/app/admin/_components/store";
+import { SKILLS, type Skill } from "./skills.config";
 
 /** Enough copies so ultrawide viewports never show a gap mid-loop. */
 const COPIES = 4;
@@ -23,75 +21,6 @@ function SkillList({ skills, ariaHidden }: { skills: Skill[]; ariaHidden?: boole
 }
 
 export default function SkillsCarousel() {
-  const { heroNodesCMS, mobileHeroSkills, projects } = useAdminStore();
-
-  const dynamicSkills: Skill[] = useMemo(() => {
-    const skillMap = new Map<string, Skill>();
-
-    // 1. Always include static base SKILLS catalog to guarantee full tech stack representation
-    SKILLS.forEach((s) => {
-      skillMap.set(s.name.toLowerCase(), s);
-    });
-
-    // 2. Merge DB heroNodesCMS items if available
-    if (heroNodesCMS?.items && heroNodesCMS.items.length > 0) {
-      heroNodesCMS.items
-        .filter((i) => i.visible)
-        .forEach((item) => {
-          const name = item.label || item.title;
-          if (name) {
-            const key = name.toLowerCase();
-            if (!skillMap.has(key)) {
-              skillMap.set(key, {
-                id: item.id || item.nodeId || `hero-${key}`,
-                name,
-                Icon: resolveSkillIcon(name),
-              });
-            }
-          }
-        });
-    }
-
-    // 3. Merge DB mobileHeroSkills
-    if (mobileHeroSkills && mobileHeroSkills.length > 0) {
-      mobileHeroSkills
-        .filter((s) => s.visible)
-        .forEach((item) => {
-          if (item.text) {
-            const key = item.text.toLowerCase();
-            if (!skillMap.has(key)) {
-              skillMap.set(key, {
-                id: item.id || `mobile-${key}`,
-                name: item.text,
-                Icon: resolveSkillIcon(item.text),
-              });
-            }
-          }
-        });
-    }
-
-    // 4. Merge unique tech from DB projects
-    if (projects && projects.length > 0) {
-      projects.forEach((p) => {
-        p.project_tech?.forEach((tech) => {
-          if (tech) {
-            const key = tech.toLowerCase();
-            if (!skillMap.has(key)) {
-              skillMap.set(key, {
-                id: `tech-${key}`,
-                name: tech,
-                Icon: resolveSkillIcon(tech),
-              });
-            }
-          }
-        });
-      });
-    }
-
-    const result = Array.from(skillMap.values());
-    return result.length > 0 ? result : SKILLS;
-  }, [heroNodesCMS, mobileHeroSkills, projects]);
-
   return (
     <div
       className="skills-carousel relative w-full overflow-hidden py-10 sm:py-12"
@@ -108,7 +37,7 @@ export default function SkillsCarousel() {
 
       <div className="skills-track">
         {Array.from({ length: COPIES }, (_, i) => (
-          <SkillList key={i} skills={dynamicSkills} ariaHidden={i > 0} />
+          <SkillList key={i} skills={SKILLS} ariaHidden={i > 0} />
         ))}
       </div>
     </div>

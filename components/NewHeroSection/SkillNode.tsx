@@ -4,7 +4,11 @@ import { Billboard, Text } from "@react-three/drei";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
-import { LABEL_GLOW, PHYSICS } from "./config/scene.config";
+import {
+  IS_HERO_RIGHT_CLICK_ENABLED,
+  LABEL_GLOW,
+  PHYSICS,
+} from "./config/scene.config";
 import { useNetworkGroupRef } from "./NetworkGroupContext";
 import { useInteractionStore } from "@/zustand";
 import type { BreakpointConfig, PositionedSkillNode, Vec3 } from "./types/network";
@@ -33,7 +37,7 @@ const SETTLED_EPS2 = 1e-8;
 /**
  * Orbiting skill as Troika text (no glass sphere / Html labels).
  *
- * - Press without move → info card
+ * - Press without move → info card (left-click by default, or right-click when toggled via env)
  * - Press + move past threshold → drag, then ease back to rest
  */
 function SkillNodeComponent({ node, config }: SkillNodeProps) {
@@ -47,6 +51,8 @@ function SkillNodeComponent({ node, config }: SkillNodeProps) {
   const networkGroupRef = useNetworkGroupRef();
 
   const pressActiveRef = useRef(false);
+  const pressButtonRef = useRef<number>(0);
+  const pressPointerTypeRef = useRef<string>("mouse");
   const draggingRef = useRef(false);
   const pointerIdRef = useRef<number | null>(null);
   const pointerDownPos = useRef({ x: 0, y: 0 });
@@ -161,8 +167,16 @@ function SkillNodeComponent({ node, config }: SkillNodeProps) {
   });
 
   const beginPress = useCallback(
-    (clientX: number, clientY: number, pointerId: number) => {
+    (
+      clientX: number,
+      clientY: number,
+      pointerId: number,
+      button: number,
+      pointerType: string,
+    ) => {
       pressActiveRef.current = true;
+      pressButtonRef.current = button;
+      pressPointerTypeRef.current = pointerType;
       draggingRef.current = false;
       planeReadyRef.current = false;
       pointerIdRef.current = pointerId;
@@ -183,6 +197,7 @@ function SkillNodeComponent({ node, config }: SkillNodeProps) {
   const activateDrag = useCallback(
     (clientX: number, clientY: number) => {
       if (draggingRef.current) return;
+      if (IS_HERO_RIGHT_CLICK_ENABLED && pressButtonRef.current === 2) return;
       draggingRef.current = true;
       setDragging(true);
       setupDragPlane(clientX, clientY);
@@ -240,6 +255,9 @@ function SkillNodeComponent({ node, config }: SkillNodeProps) {
 
       const wasDrag = draggingRef.current;
       const pid = pointerIdRef.current;
+      const button = pressButtonRef.current;
+      const isTouch = pressPointerTypeRef.current === "touch";
+
       pressActiveRef.current = false;
       draggingRef.current = false;
       planeReadyRef.current = false;
@@ -253,8 +271,14 @@ function SkillNodeComponent({ node, config }: SkillNodeProps) {
       if (wasDrag) {
         setDragging(false);
       } else {
-        const cur = currentPosRef.current;
-        selectNode(node.id, node, [cur.x, cur.y, cur.z]);
+        const shouldSelect = IS_HERO_RIGHT_CLICK_ENABLED
+          ? button === 2 || isTouch
+          : button === 0 || isTouch;
+
+        if (shouldSelect) {
+          const cur = currentPosRef.current;
+          selectNode(node.id, node, [cur.x, cur.y, cur.z]);
+        }
       }
 
       if (native?.pointerId !== undefined) {
@@ -271,8 +295,9 @@ function SkillNodeComponent({ node, config }: SkillNodeProps) {
   const onPointerDown = useCallback(
     (event: ThreeEvent<PointerEvent>) => {
       event.stopPropagation();
-      const { clientX, clientY, pointerId } = event.nativeEvent;
-      beginPress(clientX, clientY, pointerId);
+      const { clientX, clientY, pointerId, button, pointerType } =
+        event.nativeEvent;
+      beginPress(clientX, clientY, pointerId, button, pointerType);
       registerPointerPress(pointerId, {
         onMove: (e) => updateDrag(e.clientX, e.clientY),
         onUp: (e) => endInteraction(e),
@@ -280,6 +305,17 @@ function SkillNodeComponent({ node, config }: SkillNodeProps) {
     },
     [beginPress, endInteraction, updateDrag],
   );
+
+  const onContextMenu = useCallback(
+    (event: ThreeEvent<MouseEvent>) => {
+      if (IS_HERO_RIGHT_CLICK_ENABLED) {
+        event.stopPropagation();
+        event.nativeEvent.preventDefault();
+      }
+    },
+    [],
+  );
+
 
   return (
     <group
@@ -310,6 +346,7 @@ function SkillNodeComponent({ node, config }: SkillNodeProps) {
         scale={hitRadius}
         frustumCulled
         onPointerDown={onPointerDown}
+        onContextMenu={onContextMenu}
       />
     </group>
   );

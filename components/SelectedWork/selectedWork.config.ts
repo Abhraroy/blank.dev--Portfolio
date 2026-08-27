@@ -14,10 +14,12 @@ export type SelectedProject = {
   solution: string;
   impact: string;
   technicalHighlights: string[];
+  userCount?: number | null;
+  revenue?: number | null;
+  currency?: string | null;
+  extraNotes?: string | null;
   githubUrl?: string;
   liveUrl?: string;
-  period?: string;
-  role?: string;
   category?: string;
   /** Slight vertical offset for masonry rhythm on desktop. */
   offset?: "up" | "down";
@@ -31,6 +33,23 @@ export const SELECTED_WORK = {
 } as const;
 
 export const SELECTED_PROJECTS: SelectedProject[] = [];
+
+export function formatMetricNumber(
+  num: number | null | undefined,
+  prefix = "",
+  suffix = ""
+): string {
+  if (num === null || num === undefined || isNaN(num) || num === 0) return "";
+  if (num >= 1_000_000) {
+    const formatted = (num / 1_000_000).toFixed(num % 1_000_000 === 0 ? 0 : 1);
+    return `${prefix}${formatted}M+${suffix}`;
+  }
+  if (num >= 1_000) {
+    const formatted = (num / 1_000).toFixed(num % 1_000 === 0 ? 0 : 1);
+    return `${prefix}${formatted}K+${suffix}`;
+  }
+  return `${prefix}${num.toLocaleString()}${suffix}`;
+}
 
 export function getProjectBySlug(slug: string): SelectedProject | undefined {
   return SELECTED_PROJECTS.find((project) => project.slug === slug);

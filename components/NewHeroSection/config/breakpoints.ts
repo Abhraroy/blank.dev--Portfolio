@@ -38,11 +38,11 @@ export const BREAKPOINTS = {
     nodeCount: 36,
     showLabels: false,
     hitScale: 1,
-    cameraDistance: 27,
+    cameraDistance: 25,
     centerSize: 0.9,
     nodeSize: 0.3,
     holdMs: 500,
-    labelFontSize: 0.42,
+    labelFontSize: 0.45,
   },
 } as const satisfies Record<BreakpointKey, BreakpointConfig>;
 

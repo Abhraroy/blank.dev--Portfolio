@@ -50,6 +50,12 @@ export async function PUT(
         ...(fields.currently_working !== undefined && {
           currently_working: fields.currently_working,
         }),
+        ...(fields.experience_image !== undefined && {
+          experience_image: fields.experience_image || null,
+        }),
+        ...(fields.experience_tech !== undefined && {
+          experience_tech: Array.isArray(fields.experience_tech) ? fields.experience_tech : [],
+        }),
       },
     });
 

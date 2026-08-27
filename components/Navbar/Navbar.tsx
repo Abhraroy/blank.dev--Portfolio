@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { FiDownload } from "react-icons/fi";
+import { FiDownload, FiHome } from "react-icons/fi";
 import { NAV_BRAND, NAV_LINKS } from "./nav.config";
 import { useAdminStore } from "@/app/admin/_components/store";
 
@@ -54,12 +54,13 @@ const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) =>
 function MobileNav({
   open,
   setOpen,
-  brandName,
 }: {
   open: boolean;
   setOpen: (value: boolean | ((prev: boolean) => boolean)) => void;
-  brandName: string;
+  brandName?: string;
 }) {
+  const mobileNavLinks = NAV_LINKS.filter((item) => item.label.toLowerCase() !== "home");
+
   return (
     <div className="w-full">
       <nav
@@ -68,10 +69,15 @@ function MobileNav({
       >
         <Link
           href={NAV_BRAND.href}
-          className={brandClass}
-          onClick={() => setOpen(false)}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/10 text-zinc-100 transition-colors hover:border-white/30 hover:bg-white/20 hover:text-white"
+          onClick={(e) => {
+            setOpen(false);
+            handleNavClick(e, NAV_BRAND.href);
+          }}
+          aria-label="Home"
+          title="Home"
         >
-          {brandName}
+          <FiHome className="h-4 w-4 text-zinc-100" />
         </Link>
 
         <div className="flex items-center gap-2">
@@ -113,8 +119,8 @@ function MobileNav({
           open ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        <ul className="mt-3 space-y-1 rounded-2xl border border-white/10 bg-zinc-950/90 p-3 backdrop-blur-xl">
-          {NAV_LINKS.map((item) => (
+        <ul className="mt-3 space-y-1 rounded-2xl border border-white/10 bg-zinc-950/95 p-3 backdrop-blur-xl shadow-2xl">
+          {mobileNavLinks.map((item) => (
             <li key={item.href}>
               <Link
                 href={item.href}

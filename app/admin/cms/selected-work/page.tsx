@@ -57,6 +57,8 @@ interface FormState {
   modeHighlights: string;
   modeUserCount: number | "";
   modeRevenue: number | "";
+  modeCurrency: string;
+  modeNotes: string;
   projectMdUrl: string;
   // Selected Work CMS Specific Settings
   offset: "up" | "down";
@@ -90,6 +92,8 @@ const defaultFormState: FormState = {
   modeHighlights: "",
   modeUserCount: "",
   modeRevenue: "",
+  modeCurrency: "$",
+  modeNotes: "",
   projectMdUrl: "",
   // Selected Work Defaults
   offset: "up",
@@ -313,15 +317,23 @@ export default function CMSSelectedWorkPage() {
         ? modeContent.project_revenue
         : "";
 
+    const rawHighlights = modeContent?.project_highlights || [];
+    const formattedHighlights =
+      rawHighlights.length > 0
+        ? rawHighlights.map((h) => `• ${h}`).join("\n")
+        : "";
+
     return {
       modeTabId: modeId || activeModeId || modes[0]?.id || "",
       modeDescription: modeContent?.project_description || "",
       modeChallenge: modeContent?.challenge || "",
       modeSolution: modeContent?.solution || "",
       modeImpact: modeContent?.impact || "",
-      modeHighlights: (modeContent?.project_highlights || []).join(", "),
+      modeHighlights: formattedHighlights,
       modeUserCount: uCount,
       modeRevenue: rev,
+      modeCurrency: modeContent?.currency !== undefined && modeContent?.currency !== null ? modeContent.currency : "$",
+      modeNotes: modeContent?.extra_notes || "",
       projectMdUrl: proj.project_md_url || "",
     };
   };
@@ -503,10 +515,7 @@ export default function CMSSelectedWorkPage() {
 
     // Upsert Case Study Mode Content if persona mode is selected
     if (targetProjectId && formState.modeTabId) {
-      const modeHlList = formState.modeHighlights
-        .split(",")
-        .map((h) => h.trim())
-        .filter(Boolean);
+      const modeHlList = parseBullets(formState.modeHighlights);
 
       await updateProjectModeContent(targetProjectId, formState.modeTabId, {
         project_description: formState.modeDescription || null,
@@ -518,6 +527,8 @@ export default function CMSSelectedWorkPage() {
           formState.modeUserCount !== "" ? Number(formState.modeUserCount) : null,
         project_revenue:
           formState.modeRevenue !== "" ? Number(formState.modeRevenue) : null,
+        currency: formState.modeCurrency || null,
+        extra_notes: formState.modeNotes || null,
       });
     }
 
@@ -547,10 +558,7 @@ export default function CMSSelectedWorkPage() {
 
     // Update Case Study Mode Content for selected persona
     if (formState.modeTabId) {
-      const modeHlList = formState.modeHighlights
-        .split(",")
-        .map((h) => h.trim())
-        .filter(Boolean);
+      const modeHlList = parseBullets(formState.modeHighlights);
 
       await updateProjectModeContent(editingItem.project.id, formState.modeTabId, {
         project_description: formState.modeDescription || null,
@@ -562,6 +570,8 @@ export default function CMSSelectedWorkPage() {
           formState.modeUserCount !== "" ? Number(formState.modeUserCount) : null,
         project_revenue:
           formState.modeRevenue !== "" ? Number(formState.modeRevenue) : null,
+        currency: formState.modeCurrency || null,
+        extra_notes: formState.modeNotes || null,
       });
     }
 
@@ -595,6 +605,8 @@ export default function CMSSelectedWorkPage() {
       project_highlights: [],
       project_user_count: null,
       project_revenue: null,
+      currency: null,
+      extra_notes: null,
     });
 
     setFormState((prev) => ({
@@ -606,6 +618,8 @@ export default function CMSSelectedWorkPage() {
       modeHighlights: "",
       modeUserCount: "",
       modeRevenue: "",
+      modeCurrency: "$",
+      modeNotes: "",
     }));
 
     toast.info("Cleared Case Study content for selected persona mode.");
@@ -1211,18 +1225,23 @@ export default function CMSSelectedWorkPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2">
-                    Technical Highlights (Comma-separated)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="High throughput architecture, Reduced latency by 40%, 10k DAU"
+                <div className="flex flex-col gap-6">
+                  <BulletListInput
+                    label="Technical Highlights (Key Architecture & Performance Feats)"
                     value={formState.modeHighlights}
-                    onChange={(e) =>
-                      setFormState({ ...formState, modeHighlights: e.target.value })
+                    onChange={(val) =>
+                      setFormState({ ...formState, modeHighlights: val })
                     }
-                    className="w-full rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
+                    placeholder="e.g. Distributed event bus via Redis Streams, Sub-50ms query latency..."
+                  />
+
+                  <BulletListInput
+                    label="Extra Notes / Key Takeaways / Architectural Observations"
+                    value={formState.modeNotes}
+                    onChange={(val) =>
+                      setFormState({ ...formState, modeNotes: val })
+                    }
+                    placeholder="e.g. Trade-offs made during scaling, future roadmap items..."
                   />
                 </div>
 
@@ -1246,23 +1265,61 @@ export default function CMSSelectedWorkPage() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2 flex items-center gap-1.5">
-                      <FiDollarSign className="text-emerald-400 h-4 w-4" /> Revenue Impact Metric ($)
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 50000"
-                      value={formState.modeRevenue}
-                      onChange={(e) =>
-                        setFormState({
-                          ...formState,
-                          modeRevenue:
-                            e.target.value !== "" ? Number(e.target.value) : "",
-                        })
-                      }
-                      className="w-full rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
-                    />
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 flex items-center gap-1.5">
+                        <FiDollarSign className="text-emerald-400 h-4 w-4" /> Revenue Impact Metric
+                      </label>
+                      <div className="flex items-center gap-1">
+                        {["$", "₹", "€", "£"].map((curr) => (
+                          <button
+                            key={curr}
+                            type="button"
+                            onClick={() => setFormState({ ...formState, modeCurrency: curr })}
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition ${
+                              formState.modeCurrency === curr
+                                ? "bg-emerald-500 text-zinc-950 font-bold"
+                                : "bg-white/5 text-zinc-400 hover:text-white"
+                            }`}
+                          >
+                            {curr}
+                          </button>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setFormState({ ...formState, modeCurrency: "" })}
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition ${
+                            formState.modeCurrency === ""
+                              ? "bg-emerald-500 text-zinc-950 font-bold"
+                              : "bg-white/5 text-zinc-400 hover:text-white"
+                          }`}
+                        >
+                          None
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Curr ($, ₹)"
+                        value={formState.modeCurrency}
+                        onChange={(e) => setFormState({ ...formState, modeCurrency: e.target.value })}
+                        className="w-20 rounded-xl border border-white/15 bg-zinc-900/90 px-2 py-3.5 text-xs text-center text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500 font-mono"
+                      />
+                      <input
+                        type="number"
+                        placeholder="e.g. 50000"
+                        value={formState.modeRevenue}
+                        onChange={(e) =>
+                          setFormState({
+                            ...formState,
+                            modeRevenue:
+                              e.target.value !== "" ? Number(e.target.value) : "",
+                          })
+                        }
+                        className="flex-1 rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -1565,18 +1622,23 @@ export default function CMSSelectedWorkPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2">
-                    Technical Highlights (Comma-separated)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="High throughput architecture, Reduced latency by 40%, 10k DAU"
+                <div className="flex flex-col gap-6">
+                  <BulletListInput
+                    label="Technical Highlights (Key Architecture & Performance Feats)"
                     value={formState.modeHighlights}
-                    onChange={(e) =>
-                      setFormState({ ...formState, modeHighlights: e.target.value })
+                    onChange={(val) =>
+                      setFormState({ ...formState, modeHighlights: val })
                     }
-                    className="w-full rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
+                    placeholder="e.g. Distributed event bus via Redis Streams, Sub-50ms query latency..."
+                  />
+
+                  <BulletListInput
+                    label="Extra Notes / Key Takeaways / Architectural Observations"
+                    value={formState.modeNotes}
+                    onChange={(val) =>
+                      setFormState({ ...formState, modeNotes: val })
+                    }
+                    placeholder="e.g. Trade-offs made during scaling, future roadmap items..."
                   />
                 </div>
 
@@ -1600,23 +1662,61 @@ export default function CMSSelectedWorkPage() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2 flex items-center gap-1.5">
-                      <FiDollarSign className="text-emerald-400 h-4 w-4" /> Revenue Impact Metric ($)
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 50000"
-                      value={formState.modeRevenue}
-                      onChange={(e) =>
-                        setFormState({
-                          ...formState,
-                          modeRevenue:
-                            e.target.value !== "" ? Number(e.target.value) : "",
-                        })
-                      }
-                      className="w-full rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
-                    />
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 flex items-center gap-1.5">
+                        <FiDollarSign className="text-emerald-400 h-4 w-4" /> Revenue Impact Metric
+                      </label>
+                      <div className="flex items-center gap-1">
+                        {["$", "₹", "€", "£"].map((curr) => (
+                          <button
+                            key={curr}
+                            type="button"
+                            onClick={() => setFormState({ ...formState, modeCurrency: curr })}
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition ${
+                              formState.modeCurrency === curr
+                                ? "bg-emerald-500 text-zinc-950 font-bold"
+                                : "bg-white/5 text-zinc-400 hover:text-white"
+                            }`}
+                          >
+                            {curr}
+                          </button>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setFormState({ ...formState, modeCurrency: "" })}
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition ${
+                            formState.modeCurrency === ""
+                              ? "bg-emerald-500 text-zinc-950 font-bold"
+                              : "bg-white/5 text-zinc-400 hover:text-white"
+                          }`}
+                        >
+                          None
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Curr ($, ₹)"
+                        value={formState.modeCurrency}
+                        onChange={(e) => setFormState({ ...formState, modeCurrency: e.target.value })}
+                        className="w-20 rounded-xl border border-white/15 bg-zinc-900/90 px-2 py-3.5 text-xs text-center text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500 font-mono"
+                      />
+                      <input
+                        type="number"
+                        placeholder="e.g. 50000"
+                        value={formState.modeRevenue}
+                        onChange={(e) =>
+                          setFormState({
+                            ...formState,
+                            modeRevenue:
+                              e.target.value !== "" ? Number(e.target.value) : "",
+                          })
+                        }
+                        className="flex-1 rounded-xl border border-white/15 bg-zinc-900/90 px-4 py-3.5 text-sm sm:text-base text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -1892,12 +1992,12 @@ export default function CMSSelectedWorkPage() {
 
                             {mc.project_highlights && mc.project_highlights.length > 0 && (
                               <div>
-                                <span className="text-[10px] text-zinc-500 uppercase block mb-1">Highlights</span>
+                                <span className="text-[10px] text-zinc-500 uppercase block mb-1">Technical Highlights</span>
                                 <div className="flex flex-wrap gap-1">
                                   {mc.project_highlights.map((h, i) => (
                                     <span
                                       key={i}
-                                      className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-zinc-400 border border-white/5"
+                                      className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20"
                                     >
                                       • {h}
                                     </span>
@@ -1906,12 +2006,30 @@ export default function CMSSelectedWorkPage() {
                               </div>
                             )}
 
-                            <div className="flex gap-4 text-[10px] text-zinc-400 pt-1">
-                              {mc.project_user_count !== null && (
-                                <span>Users: {mc.project_user_count}</span>
+                            {mc.extra_notes && (
+                              <div>
+                                <span className="text-[10px] text-zinc-500 uppercase block mb-1">Extra Notes</span>
+                                <ul className="space-y-1">
+                                  {parseBullets(mc.extra_notes).map((n, i) => (
+                                    <li key={i} className="text-xs text-zinc-400 flex items-start gap-1.5">
+                                      <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-emerald-400 shrink-0" />
+                                      <span>{n}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            <div className="flex gap-4 text-[10px] text-zinc-400 pt-1 border-t border-white/5">
+                              {typeof mc.project_user_count === "number" && (
+                                <span className="px-2 py-0.5 rounded bg-white/5 text-zinc-300 border border-white/10 font-mono">
+                                  Users: {mc.project_user_count.toLocaleString()}
+                                </span>
                               )}
-                              {mc.project_revenue !== null && (
-                                <span>Revenue: ${mc.project_revenue}</span>
+                              {typeof mc.project_revenue === "number" && (
+                                <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-mono">
+                                  Revenue: {mc.currency !== undefined && mc.currency !== null ? mc.currency : "$"}{mc.project_revenue.toLocaleString()}
+                                </span>
                               )}
                             </div>
                           </div>

@@ -24,8 +24,8 @@ The hero is a **padded shell**: the 3D canvas is inset (~3–4rem). Padded margi
 | Input | Result |
 |-------|--------|
 | **Mouse move / enter / leave** | Nothing — no tooltips, no locks, no camera move |
-| **Click / tap** sphere (press, no move) | Opens the info card; auto-spin keeps going |
-| **Press + drag** sphere (move past ~6px) | Drags the node; auto-spin pauses until release; then soft spring-back |
+| **Click / tap** sphere (press, no move) | Opens info card (left-click by default, or right-click when `NEXT_PUBLIC_ENABLE_HERO_RIGHT_CLICK="true"`); auto-spin keeps going |
+| **Press + drag** sphere (move past ~6px) | Drags the node (left-click); auto-spin pauses until release; then soft spring-back |
 | **Left-click + drag empty space** (move past ~6px) | Orbits the camera. Blocked while a node is pressed/dragged |
 | **Click empty canvas / Esc / card close** | Clears selection + card |
 | **Wheel / pinch on canvas** | Disabled — no zoom into spheres |
@@ -33,8 +33,13 @@ The hero is a **padded shell**: the 3D canvas is inset (~3–4rem). Padded margi
 | **Bottom “Scroll” cue** | Visual affordance in the lower padding; does not capture clicks |
 | **Idle** | Network **auto-spin** continues |
 
+> **Environment Flag (`NEXT_PUBLIC_ENABLE_HERO_RIGHT_CLICK`)**:
+> - When set to `"true"`: **Right-click** on a skill node opens the info card, leaving left-click exclusively for dragging nodes and orbiting the scene.
+> - When `"false"` (default): **Left-click** on a skill node opens the info card.
+
 State is managed in Zustand: [`store/interactionStore.ts`](../../zustand/interactionStore.ts).  
 Press/drag lock: [`utils/gestureLocks.ts`](./utils/gestureLocks.ts).
+
 
 ---
 

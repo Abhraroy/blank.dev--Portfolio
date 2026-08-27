@@ -17,92 +17,144 @@ export default function Experience() {
 
   // Derive dynamic milestones from ExperienceSectionCMS composition layer
   const milestones: ExperienceMilestoneType[] = useMemo(() => {
+    const formatYear = (exp: typeof experiences[0]) => {
+      if (!exp.start_date) return "2024";
+      const startYear = new Date(exp.start_date).getFullYear().toString();
+      const endYear = exp.currently_working
+        ? "Present"
+        : exp.end_date
+          ? new Date(exp.end_date).getFullYear().toString()
+          : "";
+      if (startYear && endYear && startYear !== endYear) {
+        return `${startYear} — ${endYear}`;
+      }
+      return startYear || endYear || "2024";
+    };
+
     if (!experienceCMS || !experienceCMS.items || experienceCMS.items.length === 0) {
       if (experiences.length > 0) {
         return experiences.map((exp) => {
-          const yearStr = exp.start_date ? new Date(exp.start_date).getFullYear().toString() : "Placeholder";
           const modeContent =
             exp.modeContents?.find((m) => m.portfolioModeId === activeModeId) ||
             exp.modeContents?.[0];
+
+          const companyLocation = `${exp.company_name || ""}${exp.location ? ` · ${exp.location}` : ""}`;
+          const summary = modeContent?.experience_summary || companyLocation || "Experience";
+          const description = modeContent?.experience_description || modeContent?.experience_summary || exp.role_title || "";
+
+          const techStack = exp.experience_tech && exp.experience_tech.length > 0
+            ? exp.experience_tech
+            : [];
+
+          const masterAchievements = (exp.achievements || [])
+            .filter((a) => a.visible !== false)
+            .sort((a, b) => a.order - b.order)
+            .map((a) => a.content);
+
+          const achievements = masterAchievements.length > 0
+            ? masterAchievements
+            : (modeContent?.experience_highlights || []);
+
+          const stats = (exp.metrics || [])
+            .filter((m) => m.visible !== false)
+            .sort((a, b) => a.order - b.order)
+            .map((m) => ({ label: m.label, value: m.value }));
+
           return {
             id: exp.id,
-            year: yearStr,
-            title: exp.role_title || "Placeholder",
-            summary: `${exp.company_name || "Placeholder"}${exp.location ? ` · ${exp.location}` : ""}`,
-            description: modeContent?.experience_description || exp.role_title || "Placeholder",
-            techStack: modeContent?.experience_highlights && modeContent.experience_highlights.length > 0
-              ? modeContent.experience_highlights
-              : ["Placeholder"],
-            achievements: modeContent?.experience_highlights || ["Placeholder"],
-            stats: [{ label: "Placeholder", value: "Placeholder" }],
+            year: formatYear(exp),
+            title: exp.role_title || "Experience",
+            summary,
+            description,
+            techStack,
+            achievements,
+            stats,
+            image: exp.experience_image || undefined,
+            showYear: true,
+            showRole: true,
+            showCompany: true,
+            showDescription: true,
+            showTechnologies: true,
+            showAchievements: true,
+            showMetrics: true,
+            isFeatured: false,
           };
         });
       }
-      return [
-        {
-          id: "ph-exp-1",
-          year: "Placeholder",
-          title: "Placeholder",
-          summary: "Placeholder",
-          description: "Placeholder",
-          techStack: ["Placeholder"],
-          achievements: ["Placeholder"],
-          stats: [{ label: "Placeholder", value: "Placeholder" }],
-        },
-      ];
+      return [];
     }
 
     const activeCMSItems = [...experienceCMS.items]
       .filter((i) => i.visible)
       .sort((a, b) => a.displayOrder - b.displayOrder);
 
-    const derived = activeCMSItems.map((item) => {
-      const exp = experiences.find((e) => e.id === item.experienceId);
-      const metrics = experienceMetrics
-        .filter((m) => m.experienceId === item.experienceId && m.visible)
-        .sort((a, b) => a.order - b.order)
-        .map((m) => ({ label: m.label || "Placeholder", value: m.value || "Placeholder" }));
+    const derived = activeCMSItems
+      .map((item) => {
+        const exp = experiences.find((e) => e.id === item.experienceId);
+        if (!exp) return null;
 
-      const achievements = experienceAchievements
-        .filter((a) => a.experienceId === item.experienceId && a.visible)
-        .sort((a, b) => a.order - b.order)
-        .map((a) => a.content || "Placeholder");
+        const modeContent =
+          exp.modeContents?.find((m) => m.portfolioModeId === activeModeId) ||
+          exp.modeContents?.[0];
 
-      if (!exp) {
+        const companyLocation = `${exp.company_name || ""}${exp.location ? ` · ${exp.location}` : ""}`;
+        const summary = modeContent?.experience_summary || companyLocation || "Experience";
+        const description = modeContent?.experience_description || modeContent?.experience_summary || exp.role_title || "";
+
+        const techStack = exp.experience_tech && exp.experience_tech.length > 0
+          ? exp.experience_tech
+          : [];
+
+        const masterAchievements = (exp.achievements || [])
+          .filter((a) => a.visible !== false)
+          .sort((a, b) => a.order - b.order)
+          .map((a) => a.content);
+
+        const storeAchievements = experienceAchievements
+          .filter((a) => a.experienceId === item.experienceId && a.visible)
+          .sort((a, b) => a.order - b.order)
+          .map((a) => a.content);
+
+        const achievements =
+          masterAchievements.length > 0
+            ? masterAchievements
+            : storeAchievements.length > 0
+              ? storeAchievements
+              : (modeContent?.experience_highlights || []);
+
+        const masterMetrics = (exp.metrics || [])
+          .filter((m) => m.visible !== false)
+          .sort((a, b) => a.order - b.order)
+          .map((m) => ({ label: m.label, value: m.value }));
+
+        const storeMetrics = experienceMetrics
+          .filter((m) => m.experienceId === item.experienceId && m.visible)
+          .sort((a, b) => a.order - b.order)
+          .map((m) => ({ label: m.label, value: m.value }));
+
+        const stats = masterMetrics.length > 0 ? masterMetrics : storeMetrics;
+
         return {
-          id: item.id,
-          year: "Placeholder",
-          title: "Placeholder",
-          summary: "Placeholder",
-          description: "Placeholder",
-          techStack: ["Placeholder"],
-          achievements: achievements.length > 0 ? achievements : ["Placeholder"],
-          stats: metrics.length > 0 ? metrics : [{ label: "Placeholder", value: "Placeholder" }],
+          id: exp.id,
+          year: formatYear(exp),
+          title: exp.role_title || "Experience",
+          summary,
+          description,
+          techStack,
+          achievements,
+          stats,
+          image: exp.experience_image || undefined,
+          showYear: item.showYear ?? true,
+          showRole: item.showRole ?? true,
+          showCompany: item.showCompany ?? true,
+          showDescription: item.showDescription ?? true,
+          showTechnologies: item.showTechnologies ?? true,
+          showAchievements: item.showAchievements ?? true,
+          showMetrics: item.showMetrics ?? true,
+          isFeatured: item.isFeatured ?? false,
         };
-      }
-
-      const yearStr = exp.start_date ? new Date(exp.start_date).getFullYear().toString() : "Placeholder";
-      const modeContent =
-        exp.modeContents?.find((m) => m.portfolioModeId === activeModeId) ||
-        exp.modeContents?.[0];
-
-      return {
-        id: exp.id,
-        year: yearStr,
-        title: exp.role_title || "Placeholder",
-        summary: `${exp.company_name || "Placeholder"}${exp.location ? ` · ${exp.location}` : ""}`,
-        description: modeContent?.experience_description || exp.role_title || "Placeholder",
-        techStack: modeContent?.experience_highlights && modeContent.experience_highlights.length > 0
-          ? modeContent.experience_highlights
-          : ["Placeholder"],
-        achievements: achievements.length > 0
-          ? achievements
-          : modeContent?.experience_highlights || ["Placeholder"],
-        stats: metrics.length > 0
-          ? metrics
-          : [{ label: "Placeholder", value: "Placeholder" }],
-      };
-    });
+      })
+      .filter(Boolean) as ExperienceMilestoneType[];
 
     return derived;
   }, [experiences, experienceMetrics, experienceAchievements, experienceCMS, activeModeId]);

@@ -27,7 +27,7 @@ export const INFO_CARD_CONFIG = {
 
   // Font Sizes
   titleFontSize: "24px",          // Title heading font size
-  descriptionFontSize: "11px",    // Body description font size
+  descriptionFontSize: "20px",    // Body description font size
   techBadgeFontSize: "9px",       // Tech stack badge font size
   ctaFontSize: "21px",            // CTA action button font size
   escButtonFontSize: "10px",      // Esc close button font size

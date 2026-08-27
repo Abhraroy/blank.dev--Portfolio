@@ -3,8 +3,9 @@
 import React from "react";
 import { usePathname } from "next/navigation";
 import { useAdminStore } from "./store";
-import { FiLayers, FiActivity } from "react-icons/fi";
+import { FiLayers, FiActivity, FiLogOut } from "react-icons/fi";
 import { toast } from "react-toastify";
+import { logoutAction } from "../login/actions";
 
 const titleMap: Record<string, { title: string; subtitle: string }> = {
   "/admin": {
@@ -110,7 +111,20 @@ export const Header: React.FC = () => {
           <FiActivity className="h-4 w-4 text-emerald-400 animate-pulse" />
           <span className="font-mono text-xs sm:text-sm text-zinc-300 font-semibold">Prisma Client</span>
         </div>
+
+        {/* Sign Out Button */}
+        <form action={logoutAction} className="shrink-0">
+          <button
+            type="submit"
+            title="Sign out of Admin Studio"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 text-xs sm:text-sm font-mono transition-all cursor-pointer"
+          >
+            <FiLogOut className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Sign Out</span>
+          </button>
+        </form>
       </div>
     </header>
   );
 };
+

@@ -4,12 +4,12 @@ import Link from "next/link";
 import { useState, useMemo } from "react";
 import { FiSearch, FiGithub, FiExternalLink, FiArrowRight, FiArrowLeft, FiCode } from "react-icons/fi";
 import { useAdminStore } from "@/app/admin/_components/store";
-import { type SelectedProject } from "@/components/SelectedWork/selectedWork.config";
+import { type SelectedProject, formatMetricNumber } from "@/components/SelectedWork/selectedWork.config";
 
 export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const { projects, activeModeId } = useAdminStore();
+  const { projects, activeModeId, selectedWorkCMS } = useAdminStore();
 
   const allProjects: SelectedProject[] = useMemo(() => {
     if (projects.length === 0) {
@@ -34,24 +34,49 @@ export default function ProjectsPage() {
       const modeContent =
         p.modeContents?.find((m) => m.portfolioModeId === activeModeId) ||
         p.modeContents?.[0];
+      
+      const currencySymbol =
+        modeContent?.currency !== undefined && modeContent?.currency !== null
+          ? modeContent.currency
+          : "$";
+      const userMetric = formatMetricNumber(modeContent?.project_user_count);
+      const revMetric = formatMetricNumber(modeContent?.project_revenue, currencySymbol);
+      const compiledMetrics: { label: string }[] = [];
+      if (userMetric) compiledMetrics.push({ label: `${userMetric} Users` });
+      if (revMetric) compiledMetrics.push({ label: `${revMetric} Revenue` });
+      if (modeContent?.project_highlights && modeContent.project_highlights.length > 0) {
+        compiledMetrics.push(...modeContent.project_highlights.map((h: string) => ({ label: h })));
+      }
+      if (compiledMetrics.length === 0) {
+        compiledMetrics.push({ label: "Production Scale" });
+      }
+
+      const cmsItem = selectedWorkCMS?.items?.find((i) => i.projectId === p.id);
+
       return {
         id: p.id,
         slug: p.slug,
-        number: (idx + 1).toString().padStart(2, "0"),
+        number: cmsItem?.customNumber || (idx + 1).toString().padStart(2, "0"),
         name: p.project_name || "Placeholder",
         oneLiner: modeContent?.project_description || p.project_name || "Placeholder",
         techStack: p.project_tech && p.project_tech.length > 0 ? p.project_tech : ["Placeholder"],
         githubUrl: p.project_github || undefined,
         liveUrl: p.project_url || undefined,
         category: p.project_type || "Project Case Study",
-        metrics: (modeContent?.project_highlights || ["Placeholder"]).map((h: string) => ({ label: h })),
+        metrics: compiledMetrics,
         challenge: modeContent?.challenge || modeContent?.project_description || "No challenge statement configured.",
         solution: modeContent?.solution || `Built with ${p.project_tech?.join(", ") || "modern tech stack"}.`,
         impact: modeContent?.impact || `Active ${p.project_status || "production"} project.`,
-        technicalHighlights: modeContent?.project_highlights || ["Placeholder"],
+        technicalHighlights: modeContent?.project_highlights && modeContent.project_highlights.length > 0
+          ? modeContent.project_highlights
+          : ["High throughput architecture", "Scalable data pipeline"],
+        userCount: modeContent?.project_user_count ?? null,
+        revenue: modeContent?.project_revenue ?? null,
+        currency: currencySymbol,
+        extraNotes: modeContent?.extra_notes ?? null,
       };
     });
-  }, [projects, activeModeId]);
+  }, [projects, activeModeId, selectedWorkCMS]);
 
   const categories = useMemo(() => {
     const cats = new Set<string>();
@@ -91,9 +116,9 @@ export default function ProjectsPage() {
         <div>
           <Link
             href="/#work"
-            className="inline-flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-zinc-400 uppercase transition hover:text-white"
+            className="inline-flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-zinc-300 uppercase transition hover:text-white"
           >
-            <FiArrowLeft className="h-3.5 w-3.5" />
+            <FiArrowLeft className="h-4 w-4 text-zinc-200 group-hover:text-white" />
             <span>Back to Showcase</span>
           </Link>
         </div>
@@ -256,10 +281,10 @@ function ProjectGridCard({ project }: { project: SelectedProject }) {
       <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4">
         <Link
           href={`/projects/${project.slug}`}
-          className="inline-flex items-center gap-1.5 font-mono text-xs tracking-[0.15em] text-zinc-300 uppercase transition hover:text-white"
+          className="inline-flex items-center gap-2 font-mono text-xs tracking-[0.15em] text-zinc-200 uppercase transition hover:text-white group"
         >
           <span>Read Case Study</span>
-          <FiArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+          <FiArrowRight className="h-4 w-4 text-zinc-100 transition-transform group-hover:translate-x-1.5" />
         </Link>
 
         <div className="flex items-center gap-2">
@@ -268,10 +293,10 @@ function ProjectGridCard({ project }: { project: SelectedProject }) {
               href={project.githubUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-white/10 bg-white/5 p-2 text-zinc-400 transition hover:border-white/20 hover:text-white"
+              className="rounded-lg border border-white/15 bg-white/10 p-2 text-zinc-200 transition hover:border-white/30 hover:bg-white/20 hover:text-white"
               title="GitHub Repository"
             >
-              <FiGithub className="h-3.5 w-3.5" />
+              <FiGithub className="h-4 w-4" />
             </a>
           )}
           {project.liveUrl && (
@@ -279,10 +304,10 @@ function ProjectGridCard({ project }: { project: SelectedProject }) {
               href={project.liveUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-white/10 bg-white/5 p-2 text-zinc-400 transition hover:border-white/20 hover:text-white"
+              className="rounded-lg border border-white/15 bg-white/10 p-2 text-zinc-200 transition hover:border-white/30 hover:bg-white/20 hover:text-white"
               title="Live Site / Preview"
             >
-              <FiExternalLink className="h-3.5 w-3.5" />
+              <FiExternalLink className="h-4 w-4" />
             </a>
           )}
         </div>

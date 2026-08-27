@@ -31,7 +31,7 @@ export default function ViewAllCard() {
             </span>
             <span
               aria-hidden
-              className="font-mono text-lg text-zinc-500 transition-transform group-hover:translate-x-1 group-hover:text-zinc-300"
+              className="font-mono text-xl text-zinc-100 transition-transform group-hover:translate-x-1.5 group-hover:text-white"
             >
               →
             </span>

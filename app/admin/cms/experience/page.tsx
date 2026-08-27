@@ -27,8 +27,8 @@ interface FormState {
   location: string;
   start_date: string;
   end_date: string;
-  // Storytelling per persona
   modeTabId: string;
+  expSummary: string;
   expDescription: string;
   expHighlights: string;
   // CMS Toggles
@@ -50,6 +50,7 @@ const defaultFormState: FormState = {
   start_date: "",
   end_date: "",
   modeTabId: "",
+  expSummary: "",
   expDescription: "",
   expHighlights: "",
   isFeatured: false,
@@ -74,6 +75,7 @@ export default function CMSExperiencePage() {
     deleteExperienceCMSItem,
     reorderExperienceCMSItems,
     addExperience,
+    updateExperience,
     updateExperienceModeContent,
   } = useAdminStore();
 
@@ -87,10 +89,10 @@ export default function CMSExperiencePage() {
 
   const cmsItems = [...(experienceCMS.items || [])].sort((a, b) => a.displayOrder - b.displayOrder);
 
-  // Helper to load mode storytelling content for a given experience & mode ID
   const loadModeContent = (exp: Experience, modeId: string) => {
     const mc = exp.modeContents?.find((c) => c.portfolioModeId === modeId) || exp.modeContents?.[0];
     return {
+      expSummary: mc?.experience_summary || "",
       expDescription: mc?.experience_description || "",
       expHighlights: (mc?.experience_highlights || []).join(", "),
     };
@@ -243,6 +245,7 @@ export default function CMSExperiencePage() {
         start_date: formState.start_date || new Date().toISOString().slice(0, 7),
         end_date: formState.end_date || null,
         currently_working: !formState.end_date,
+        experience_tech: [],
       });
 
       if (createdExp && createdExp.id) {
@@ -258,9 +261,11 @@ export default function CMSExperiencePage() {
       const hlList = formState.expHighlights
         .split(",")
         .map((h) => h.trim())
+        .map((h) => h.trim())
         .filter(Boolean);
 
       await updateExperienceModeContent(targetExpId, formState.modeTabId, {
+        experience_summary: formState.expSummary || null,
         experience_description: formState.expDescription || null,
         experience_highlights: hlList,
       });
@@ -291,6 +296,16 @@ export default function CMSExperiencePage() {
     e.preventDefault();
     if (!editingItem) return;
 
+    // Save master experience facts if modified
+    await updateExperience(editingItem.experience.id, {
+      role_title: formState.role_title.trim() || editingItem.experience.role_title,
+      company_name: formState.company_name.trim() || editingItem.experience.company_name,
+      location: formState.location || null,
+      start_date: formState.start_date || editingItem.experience.start_date,
+      end_date: formState.end_date || null,
+      currently_working: !formState.end_date,
+    });
+
     // Save persona storytelling
     if (formState.modeTabId) {
       const hlList = formState.expHighlights
@@ -299,6 +314,7 @@ export default function CMSExperiencePage() {
         .filter(Boolean);
 
       await updateExperienceModeContent(editingItem.experience.id, formState.modeTabId, {
+        experience_summary: formState.expSummary || null,
         experience_description: formState.expDescription || null,
         experience_highlights: hlList,
       });
@@ -435,6 +451,18 @@ export default function CMSExperiencePage() {
                       <span className="text-[10px] text-zinc-500 ml-2 font-sans">
                         ({exp.location || "Location N/A"})
                       </span>
+                      {exp.experience_tech && exp.experience_tech.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {exp.experience_tech.map((tech) => (
+                            <span
+                              key={tech}
+                              className="px-1.5 py-0.5 rounded text-[9px] bg-white/5 text-zinc-300 border border-white/10"
+                            >
+                              {tech}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -669,6 +697,19 @@ export default function CMSExperiencePage() {
                       </button>
                     ))}
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] uppercase tracking-wider text-zinc-300 mb-1">
+                    Persona Story Summary (One-liner)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Short summary for milestone cards..."
+                    value={formState.expSummary}
+                    onChange={(e) => setFormState({ ...formState, expSummary: e.target.value })}
+                    className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-400"
+                  />
                 </div>
 
                 <div>

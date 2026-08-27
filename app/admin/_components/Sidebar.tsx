@@ -14,7 +14,10 @@ import {
   FiLayout,
   FiSliders,
   FiSmartphone,
+  FiLogOut,
 } from "react-icons/fi";
+import { logoutAction } from "../login/actions";
+
 
 const domainNavItems = [
   {
@@ -196,18 +199,32 @@ export const Sidebar: React.FC = () => {
         </nav>
       </div>
 
-      {/* Footer Info */}
-      <div className="p-4 border-t border-white/10 text-xs text-zinc-400 space-y-2">
-        <div className="flex items-center justify-between text-xs">
-          <span className="font-mono text-xs tracking-wider text-zinc-400 uppercase font-semibold">Schema Sync</span>
-          <span className="flex items-center gap-1.5 text-zinc-300 font-mono text-xs">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
-            Connected
-          </span>
+      {/* Sign Out Action & Footer Info */}
+      <div className="border-t border-white/10">
+        <div className="p-3">
+          <form action={logoutAction}>
+            <button
+              type="submit"
+              className="w-full group flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono text-zinc-400 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <FiLogOut className="h-4 w-4 text-zinc-500 group-hover:text-red-400 transition-colors" />
+                <span className="font-semibold">Sign Out</span>
+              </div>
+              <span className="text-[10px] text-zinc-500 font-mono">Session</span>
+            </button>
+          </form>
         </div>
-        <p className="text-xs text-zinc-500 font-mono leading-normal">
-          Client glass design theme applied.
-        </p>
+
+        <div className="px-4 pb-4 pt-1 text-xs text-zinc-400 space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-mono text-[11px] tracking-wider text-zinc-500 uppercase font-semibold">Security Proxy</span>
+            <span className="flex items-center gap-1.5 text-emerald-400 font-mono text-[11px]">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+              Active
+            </span>
+          </div>
+        </div>
       </div>
     </aside>
   );

@@ -10,6 +10,7 @@ import {
   SHOWCASE_PROJECTS as FALLBACK_SHOWCASE_PROJECTS,
   type ShowcaseProject,
 } from "./projectShowcase.config";
+import { formatMetricNumber } from "@/components/SelectedWork/selectedWork.config";
 import { useHorizontalScroll } from "./hooks/useHorizontalScroll";
 import { useAdminStore } from "@/app/admin/_components/store";
 
@@ -36,6 +37,20 @@ export default function ProjectShowcase() {
           const modeContent =
             proj.modeContents?.find((m) => m.portfolioModeId === activeModeId) ||
             proj.modeContents?.[0];
+
+          const currencySymbol =
+            modeContent?.currency !== undefined && modeContent?.currency !== null
+              ? modeContent.currency
+              : "$";
+          const userMetric = formatMetricNumber(modeContent?.project_user_count);
+          const revMetric = formatMetricNumber(modeContent?.project_revenue, currencySymbol);
+          const compiledMetrics: { label: string }[] = [];
+          if (userMetric) compiledMetrics.push({ label: `${userMetric} Users` });
+          if (revMetric) compiledMetrics.push({ label: `${revMetric} Revenue` });
+          if (modeContent?.project_highlights && modeContent.project_highlights.length > 0) {
+            compiledMetrics.push(...modeContent.project_highlights.map((h) => ({ label: h })));
+          }
+
           return {
             id: proj.id,
             slug: proj.slug,
@@ -43,11 +58,19 @@ export default function ProjectShowcase() {
             name: proj.project_name || "Placeholder",
             oneLiner: modeContent?.project_description || proj.project_name || "Placeholder",
             techStack: proj.project_tech && proj.project_tech.length > 0 ? proj.project_tech : ["Placeholder"],
-            metrics: (modeContent?.project_highlights || []).map((h) => ({ label: h })),
+            metrics: compiledMetrics.length > 0 ? compiledMetrics : [{ label: "Production Scale" }],
             challenge: modeContent?.challenge || modeContent?.project_description || "Placeholder",
             solution: modeContent?.solution || `Built with ${proj.project_tech?.join(", ") || "Placeholder"}.`,
             impact: modeContent?.impact || `Active ${proj.project_status || "Placeholder"} project.`,
-            technicalHighlights: modeContent?.project_highlights || ["Placeholder"],
+            technicalHighlights: modeContent?.project_highlights && modeContent.project_highlights.length > 0
+              ? modeContent.project_highlights
+              : ["High throughput architecture", "Scalable data pipeline"],
+            userCount: modeContent?.project_user_count ?? null,
+            revenue: modeContent?.project_revenue ?? null,
+            currency: currencySymbol,
+            extraNotes: modeContent?.extra_notes ?? null,
+            githubUrl: proj.project_github || undefined,
+            liveUrl: proj.project_url || undefined,
           };
         });
       }
@@ -113,6 +136,24 @@ export default function ProjectShowcase() {
         };
       }
 
+      const currencySymbol =
+        modeContent?.currency !== undefined && modeContent?.currency !== null
+          ? modeContent.currency
+          : "$";
+      const userMetric = formatMetricNumber(modeContent?.project_user_count);
+      const revMetric = formatMetricNumber(modeContent?.project_revenue, currencySymbol);
+      const compiledMetrics: { label: string }[] = [];
+      if (userMetric) compiledMetrics.push({ label: `${userMetric} Users` });
+      if (revMetric) compiledMetrics.push({ label: `${revMetric} Revenue` });
+      if (highlights.length > 0) {
+        compiledMetrics.push(...highlights);
+      } else if (modeContent?.project_highlights && modeContent.project_highlights.length > 0) {
+        compiledMetrics.push(...modeContent.project_highlights.map((h) => ({ label: h })));
+      }
+      if (compiledMetrics.length === 0) {
+        compiledMetrics.push({ label: "Production Scale" });
+      }
+
       return {
         id: proj.id,
         slug: proj.slug,
@@ -120,15 +161,19 @@ export default function ProjectShowcase() {
         name: proj.project_name || "Placeholder",
         oneLiner: modeContent?.project_description || proj.project_name || "Placeholder",
         techStack: proj.project_tech && proj.project_tech.length > 0 ? proj.project_tech : ["Placeholder"],
-        metrics: highlights.length > 0
-          ? highlights
-          : (modeContent?.project_highlights || ["Placeholder"]).map((h) => ({ label: h })),
+        metrics: compiledMetrics,
         challenge: modeContent?.challenge || modeContent?.project_description || "Placeholder",
         solution: modeContent?.solution || `Built with ${proj.project_tech?.join(", ") || "Placeholder"}.`,
         impact: modeContent?.impact || `Active ${proj.project_status || "Placeholder"} project.`,
         technicalHighlights: modeContent?.project_highlights && modeContent.project_highlights.length > 0
           ? modeContent.project_highlights
-          : ["Placeholder"],
+          : ["High throughput architecture", "Zero-downtime deployment"],
+        userCount: modeContent?.project_user_count ?? null,
+        revenue: modeContent?.project_revenue ?? null,
+        currency: currencySymbol,
+        extraNotes: modeContent?.extra_notes ?? null,
+        githubUrl: proj.project_github || undefined,
+        liveUrl: proj.project_url || undefined,
       };
     });
 
