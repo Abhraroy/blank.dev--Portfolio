@@ -100,12 +100,20 @@ Paused while `dragPauseRef` is true (node drag).
 
 | Field | Affects |
 |-------|---------|
-| `color` | Line color (center → node) |
-| `opacity` | Base line opacity |
+| `color` | Ambient base wireframe color (hex) |
+| `pulseColor` | Color of traveling data packets / energy pulses (hex) |
+| `opacity` | Base ambient wireframe opacity |
+| `pulseOpacity` | Peak opacity of the traveling data packet |
+| `kNeighbors` | Number of closest neighbor connections per skill node |
+| `segmentsPerCurve` | Tessellation / segment count of each curved Great Circle arc along the sphere |
+| `curvatureRadiusOffset` | Outward bulge offset (>0 arches slightly above nodes, 0 = exact sphere surface) |
 | `lineWidth` | Line thickness (renderer-dependent) |
-| `pulseEnabled` | Soft opacity pulse on/off |
-| `pulseSpeed` | How fast the pulse oscillates |
-| `pulseAmplitude` | How much opacity swings |
+| `flowEnabled` | Toggle data packet / energy flow animation on/off |
+| `flowSpeed` | Speed of data packets streaming along the lines |
+| `pulseLength` | Length of glowing head and trailing falloff (0.05 to 0.6) |
+| `pulseEnabled` | Soft overall opacity breathing pulse on/off |
+| `pulseSpeed` | How fast the breathing oscillates |
+| `pulseAmplitude` | How much breathing opacity swings |
 
 ### `PHYSICS`
 

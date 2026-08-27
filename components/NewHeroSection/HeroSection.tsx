@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import HeroBackgroundIcons from "./HeroBackgroundIcons";
 import HeroMobile from "./HeroMobile";
 import { useBreakpoint } from "./hooks/useBreakpoint";
+import { FaUnlockAlt } from "react-icons/fa";
 
 const HeroScene = dynamic(() => import("./HeroScene"), {
   ssr: false,
@@ -104,15 +105,12 @@ export default function HeroSection() {
         <motion.button
           type="button"
           onClick={scrollPastHero}
-          className="pointer-events-auto absolute inset-x-0 bottom-5 z-10 mx-auto flex w-fit cursor-pointer flex-col items-center justify-center gap-1.5 rounded-full border border-white/15 bg-[#09090b]/90 px-6 py-2.5 text-zinc-300 backdrop-blur-xl transition-all duration-300 hover:border-white/35 hover:bg-white/15 hover:text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 sm:bottom-7"
+          className=" pointer-events-auto absolute inset-x-0 bottom-5 z-10 mx-auto flex w-fit cursor-pointer flex-row items-center justify-center gap-1.5 rounded-full border border-white/15 bg-[#09090b]/90 px-6 py-2.5 text-zinc-300 backdrop-blur-xl transition-all duration-300 hover:border-white/35 hover:bg-white/15 hover:text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 sm:bottom-7"
           initial={false}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.45 }}
           aria-label="Click to scroll to next section"
         >
-          <span className="font-mono text-[11px] font-semibold tracking-[0.28em] uppercase text-zinc-200 pl-[0.28em]">
-            Click to scroll
-          </span>
           <motion.span
             aria-hidden
             className="flex items-center justify-center"
@@ -123,23 +121,11 @@ export default function HeroSection() {
               ease: "easeInOut",
             }}
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 14 14"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="text-zinc-100"
-            >
-              <path
-                d="M3 5.5L7 9.5L11 5.5"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <FaUnlockAlt className="text-zinc-100" />
           </motion.span>
+          <span className="font-mono text-[11px] font-semibold tracking-[0.28em] uppercase text-zinc-200 pl-[0.28em]">
+            Click to unlock  scroll
+          </span>
         </motion.button>
       ) : null}
     </section>

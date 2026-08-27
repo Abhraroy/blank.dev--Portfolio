@@ -324,6 +324,7 @@ function SkillNodeComponent({ node, config }: SkillNodeProps) {
     >
       <Billboard follow>
         <Text
+          font={LABEL_GLOW.font}
           fontSize={fontSize}
           color={LABEL_GLOW.color}
           anchorX="center"

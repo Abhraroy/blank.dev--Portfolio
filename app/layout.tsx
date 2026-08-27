@@ -1,19 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { fontVariables } from "@/lib/fonts";
 import "./globals.css";
 import Navbar from "@/components/Navbar/Navbar";
-// SmoothScroll is currently a pass-through (Lenis commented out inside the component).
 import { SmoothScroll } from "@/components/SmoothScroll";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import FloatingContactButton from "@/components/FloatingContactButton";
+import { AppInitializer } from "@/components/AppInitializer";
 
 export const metadata: Metadata = {
   title: "Abhradip Roy — blankdev",
@@ -33,9 +24,6 @@ export const metadata: Metadata = {
   manifest: "/favicon/site.webmanifest",
 };
 
-import FloatingContactButton from "@/components/FloatingContactButton";
-import { AppInitializer } from "@/components/AppInitializer";
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -44,7 +32,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${fontVariables} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <AppInitializer />
@@ -57,4 +45,3 @@ export default function RootLayout({
     </html>
   );
 }
-

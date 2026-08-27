@@ -31,7 +31,6 @@ export default function NetworkSphere({
 }: NetworkSphereProps) {
   const groupRef = useAutoRotate(true);
   const nodes = useFibonacciSphere(config.nodeCount, config.radius);
-  const nodeIds = useMemo(() => nodes.map((n) => n.id), [nodes]);
   const showLines = CONNECTIONS.opacity > 0;
 
   return (
@@ -39,7 +38,7 @@ export default function NetworkSphere({
       <CameraManager cameraDistance={cameraDistance} />
       <group ref={groupRef}>
         <CenterNode size={config.centerSize} />
-        {showLines ? <ConnectionLines nodeIds={nodeIds} /> : null}
+        {showLines ? <ConnectionLines nodes={nodes} /> : null}
         {nodes.map((node) => (
           <SkillNode
             key={node.id}

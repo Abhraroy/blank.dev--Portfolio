@@ -67,6 +67,7 @@ export const MATERIALS = {
  * Tuned so every satellite reads as lit text, not flat glyphs.
  */
 export const LABEL_GLOW = {
+  font: "https://fonts.gstatic.com/s/zendots/v14/XRXX3ICfm00IGoesQeaE.ttf",
   color: "#fafafa",
   outlineColor: "#e4e4e7",
   outlineWidth: 0.015,
@@ -75,15 +76,36 @@ export const LABEL_GLOW = {
 } as const;
 
 /**
- * Center → skill connection lines (ConnectionLines).
- * Pulse modulates opacity over time when `pulseEnabled` is true.
+ * Skill node-to-node connection lines (ConnectionLines).
+ * Forms a curved geodesic mesh hugging the outer sphere surface.
+ * Features traveling data pulses / energy flow across the network.
  */
 export const CONNECTIONS = {
-  color: "#71717a",
-  opacity: 0,
+  /** Ambient base wireframe color (hex). */
+  color: "#52525b",
+  /** Traveling pulse / data packet color (hex). */
+  pulseColor: "#ffffff",
+  /** Base wireframe opacity (0 = hidden, 1 = fully opaque). */
+  opacity: 0.22,
+  /** Peak opacity of the traveling pulse / data packet. */
+  pulseOpacity: 0.95,
+  /** Number of nearest neighbors to connect for each node. */
+  kNeighbors: 1,
+  /** Number of line segments per curved arc (higher = smoother curve). */
+  segmentsPerCurve: 14,
+  /** Outward radius offset (>0 arches slightly above the nodes, 0 = exact sphere). */
+  curvatureRadiusOffset: 0,
+  /** Line width token (renderer-dependent). */
   lineWidth: 1,
+  /** Whether data packet / energy flow animation is active. */
+  flowEnabled: true,
+  /** Speed of energy pulses traveling along the lines (loops / second). */
+  flowSpeed: 0.65,
+  /** Length of the traveling glowing pulse head/tail (0.05 to 0.6). */
+  pulseLength: 1,
+  /** Whether line opacity softly pulses over time. */
   pulseEnabled: true,
-  pulseSpeed: 1.2,
+  pulseSpeed: 5,
   pulseAmplitude: 0.12,
 } as const;
 

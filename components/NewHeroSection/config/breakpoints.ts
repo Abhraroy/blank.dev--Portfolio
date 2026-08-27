@@ -38,7 +38,7 @@ export const BREAKPOINTS = {
     nodeCount: 36,
     showLabels: false,
     hitScale: 1,
-    cameraDistance: 25,
+    cameraDistance: 27,
     centerSize: 0.9,
     nodeSize: 0.3,
     holdMs: 500,
